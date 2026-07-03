@@ -65,10 +65,12 @@ const state = {
 /* ---------------- map ---------------- */
 const map = L.map("map", { zoomControl: true }).setView(CONFIG.MAP_CENTER, CONFIG.MAP_ZOOM);
 L.control.scale({ imperial: false }).addTo(map);
+
 L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
   maxZoom: 21, maxNativeZoom: 19,
   attribution: "© OpenStreetMap contributors",
 }).addTo(map);
+
 const lpsLayer = L.esri.dynamicMapLayer(esriOpts({ url: CONFIG.SERVICE, opacity: 0.85 })).addTo(map);
 const highlight = L.layerGroup().addTo(map);
 const HL_STYLE = { color: "#17110C", weight: 2.5, dashArray: "7 5", fillColor: "#ffffff", fillOpacity: 0.25 };
@@ -104,21 +106,30 @@ function showLiveHelp() {
 
 /* ---------------- snapshot ---------------- */
 function normalize(a) {
+  const rawCode = (a.plot_code || "").trim();
+  const rawReg = (a.regcode || "").trim();
+  // plot_code is blank on ~16k plots; fall back to regcode, then a synthetic id,
+  // so every plot has a stable, unique key and none get dropped from the register.
+  const id = rawCode || rawReg || (a.ESRI_OID != null ? "oid-" + a.ESRI_OID : "");
   return {
-    code: a.plot_code || "", no: a.plot_no ?? null, sym: a.symbology || "",
+    id, code: rawCode, no: a.plot_no ?? null, sym: a.symbology || "",
     village: a.lpsvillage || "—", twp: a.township, sec: a.sector, col: a.colony, blk: a.block,
     ext: a.alloted_ex ?? null, len: a.polylength, wid: a.polywidth,
-    categ: a.plot_categ, reg: a.regcode || "", regdate: a.reg_date_1 || null,
-    nb: { N: a.regcode_n || "", S: a.regcode_s || "", E: a.regcode_e || "", W: a.regcode_w || "" },
-    farmer: a.farmer_n || null, // present only in live lookups by default
+    categ: a.plot_categ, reg: rawReg, regdate: a.reg_date_1 || null,
+    nb: { N: (a.regcode_n || "").trim(), S: (a.regcode_s || "").trim(), E: (a.regcode_e || "").trim(), W: (a.regcode_w || "").trim() },
+    farmer: (a.farmer_n || "").trim() || null,
   };
 }
 
 function ingest(list, generated) {
-  state.plots = list.map(normalize).filter((p) => p.code || p.no != null);
-  state.byCode = new Map(state.plots.map((p) => [p.code, p]));
+  state.plots = list.map(normalize).filter((p) => p.id); // keep every identifiable plot
+  state.byCode = new Map();
+  for (const p of state.plots) {
+    if (p.code && !state.byCode.has(p.code)) state.byCode.set(p.code, p);
+    state.byCode.set(p.id, p); // id is always present and unique
+  }
   state.byReg = new Map();
-  for (const p of state.plots) if (p.reg) state.byReg.set(String(p.reg).trim(), p);
+  for (const p of state.plots) if (p.reg) state.byReg.set(p.reg, p);
   state.snapshotDate = generated || null;
   $("snapinfo").textContent = generated ? " Snapshot: " + generated.slice(0, 10) + " (refreshed nightly)." : "";
   buildVillageSelect();
@@ -175,12 +186,11 @@ function applyFilters() {
     if (village !== "All villages" && p.village !== village) return false;
     if (family !== "All" && zoneFamily(p.sym) !== family) return false;
     if (ql) {
-      const hay = (p.code + " " + (p.no ?? "") + " " + p.village + " " + p.sym + " " + p.reg + " " + (p.farmer || "")).toLowerCase();
+      const hay = (p.id + " " + p.code + " " + (p.no ?? "") + " " + p.village + " " + p.sym + " " + p.reg + " " + (p.farmer || "")).toLowerCase();
       if (!hay.includes(ql)) return false;
     }
     return true;
   });
-
   const { key, dir } = state.sort;
   state.filtered.sort((a, b) => {
     const av = a[key], bv = b[key];
@@ -195,7 +205,6 @@ function applyFilters() {
   $("stats").innerHTML =
     `<b>${inr(state.filtered.length)}</b> plots` +
     (totalExt ? ` · <b>${inr(Math.round(totalExt))}</b> total extent (as recorded)` : "");
-
   renderTable();
 }
 
@@ -227,7 +236,6 @@ const COLS = [
   { key: "sym", label: "Zone", w: "46px" },
   { key: "ext", label: "Extent", w: "66px", right: true },
 ];
-
 (function buildHead() {
   const h = $("thead");
   h.innerHTML = "";
@@ -246,7 +254,6 @@ const COLS = [
     h.appendChild(b);
   });
 })();
-
 function paintHead() {
   [...$("thead").children].forEach((b) => {
     const on = b.dataset.key === state.sort.key;
@@ -272,13 +279,14 @@ function renderTable() {
   const start = Math.max(0, Math.floor(top / ROW_H) - 6);
   const count = Math.ceil(h / ROW_H) + 12;
   const slice = rows.slice(start, start + count);
+
   const parts = [`<div style="height:${start * ROW_H}px"></div>`];
   for (const p of slice) {
-    const sel = p.code === state.selectedCode ? " sel" : "";
+    const sel = p.id === state.selectedCode ? " sel" : "";
     parts.push(
-      `<button type="button" class="trow${sel}" data-code="${esc(p.code)}">` +
-        `<span class="c-code">${esc(p.code || "#" + p.no)}</span>` +
-        `<span class="c-vil">${esc(p.village)}</span>` +
+      `<button type="button" class="trow${sel}" data-code="${esc(p.id)}">` +
+        `<span class="c-code">${esc(p.code || p.reg || "#" + p.no)}</span>` +
+        `<span class="c-vil"><span class="v1">${esc(p.village)}</span>${p.farmer ? `<span class="c-name">${esc(p.farmer)}</span>` : ""}</span>` +
         `<span class="c-zone"><span class="dot" style="background:${zoneColor(p.sym)}"></span>${esc(zoneCode(p.sym) || "—")}</span>` +
         `<span class="c-ext">${p.ext != null ? inr(Math.round(p.ext)) : "—"}</span>` +
       `</button>`
@@ -287,7 +295,6 @@ function renderTable() {
   parts.push(`<div style="height:${Math.max(0, (rows.length - start - slice.length) * ROW_H)}px"></div>`);
   tlist.innerHTML = parts.join("");
 }
-
 tlist.addEventListener("click", (e) => {
   const b = e.target.closest(".trow");
   if (b) openPlot(b.dataset.code);
@@ -299,9 +306,9 @@ const suggest = $("suggest");
 
 function suggestRow(p, extraMeta) {
   const meta = extraMeta || p.sym || "";
-  return `<button type="button" data-code="${esc(p.code)}">` +
+  return `<button type="button" data-code="${esc(p.id)}">` +
     `<span class="dot" style="background:${zoneColor(p.sym)}"></span>` +
-    `<span class="code">${esc(p.code || "#" + p.no)}</span>` +
+    `<span class="code">${esc(p.code || p.reg || "#" + p.no)}</span>` +
     `<span class="meta">${esc(p.village)}${meta ? " · " + esc(meta) : ""}</span>` +
   `</button>`;
 }
@@ -342,25 +349,21 @@ qInput.addEventListener("input", () => {
     srvTimer = setTimeout(() => liveSearch(ql), 650);
   }
 });
-
 suggest.addEventListener("mousedown", (e) => {
   const b = e.target.closest("button[data-code]");
   if (b) { e.preventDefault(); suggest.style.display = "none"; openPlot(b.dataset.code); }
 });
-
 qInput.addEventListener("blur", () => setTimeout(() => (suggest.style.display = "none"), 160));
-
 qInput.addEventListener("keydown", (e) => {
   if (e.key === "Enter") {
     const raw = qInput.value.trim();
     const exact = state.byCode.get(raw) || state.byCode.get(raw.toUpperCase());
-    if (exact) { suggest.style.display = "none"; openPlot(exact.code); }
-    else if (state.filtered.length) { suggest.style.display = "none"; openPlot(state.filtered[0].code); }
+    if (exact) { suggest.style.display = "none"; openPlot(exact.id); }
+    else if (state.filtered.length) { suggest.style.display = "none"; openPlot(state.filtered[0].id); }
     else if (state.live) liveSearch(raw); // nothing local — likely a name; ask the server
   }
   if (e.key === "Escape") { qInput.blur(); suggest.style.display = "none"; }
 });
-
 window.addEventListener("keydown", (e) => {
   if (e.key === "/" && document.activeElement !== qInput) { e.preventDefault(); qInput.focus(); }
   if (e.key === "Escape") closeCard();
@@ -375,11 +378,9 @@ function liveSearch(raw) {
   const where = /^\d+$/.test(raw)
     ? `plot_no = ${parseInt(raw, 10)}`
     : `UPPER(plot_code) LIKE UPPER('%${safe}%') OR UPPER(farmer_n) LIKE UPPER('%${safe}%')`;
-
   suggest.innerHTML = `<div class="s-note">Searching the APCRDA server…</div>`;
   suggest.style.display = "block";
   setStatus("wait", "SEARCHING SERVER…");
-
   L.esri.query(esriOpts({ url: CONFIG.SERVICE + "/" + CONFIG.PLOT_LAYER }))
     .where(where)
     .fields(["plot_code", "plot_no", "symbology", "lpsvillage", "farmer_n"])
@@ -408,15 +409,19 @@ function liveSearch(raw) {
 }
 
 /* ---------------- live plot lookup + card ---------------- */
-function openPlot(code) {
-  if (!code) return;
-  state.selectedCode = code;
+function openPlot(key) {
+  if (!key) return;
+  state.selectedCode = key;
   renderTable();
-  const rec = state.byCode.get(code) || null;
-  if (state.live) {
-    const safe = code.replace(/'/g, "''");
+  const rec = state.byCode.get(key) || null;
+  const liveCode = rec ? rec.code : key; // blank-code plots can't be queried by plot_code
+  const liveReg = rec ? rec.reg : "";
+  if (state.live && (liveCode || liveReg)) {
+    const clause = liveCode
+      ? `plot_code = '${liveCode.replace(/'/g, "''")}'`
+      : `regcode = '${liveReg.replace(/'/g, "''")}'`;
     L.esri.query(esriOpts({ url: CONFIG.SERVICE + "/" + CONFIG.PLOT_LAYER }))
-      .where(`plot_code = '${safe}'`).limit(1).returnGeometry(true)
+      .where(clause).limit(1).returnGeometry(true)
       .run((err, fc) => {
         if (!err && fc && fc.features.length) showFeature(fc.features[0]);
         else renderCard(rec, null); // fall back to snapshot record
@@ -428,9 +433,9 @@ function openPlot(code) {
 
 function showFeature(f) {
   const rec = normalize(f.properties || {});
-  const known = state.byCode.get(rec.code);
+  const known = state.byCode.get(rec.id);
   if (known) rec.nbFromSnap = known.nb; // keep snapshot boundaries if live omits them
-  state.selectedCode = rec.code;
+  state.selectedCode = rec.id;
   renderTable();
   let geom = null;
   if (f.geometry) {
@@ -447,7 +452,7 @@ function nbCell(val) {
   const t = String(val || "").trim();
   if (!t) return `<button type="button" class="nb" disabled>—</button>`;
   const target = state.byReg.get(t);
-  if (target) return `<button type="button" class="nb" data-goto="${esc(target.code)}" title="Open boundary plot">${esc(t)}</button>`;
+  if (target) return `<button type="button" class="nb" data-goto="${esc(target.id)}" title="Open boundary plot">${esc(t)}</button>`;
   return `<button type="button" class="nb" disabled>${esc(t)}</button>`;
 }
 
@@ -459,7 +464,7 @@ function renderCard(rec, geom) {
   card.innerHTML =
     `<button type="button" class="close" aria-label="Close">✕</button>` +
     `<div class="eyebrow">RETURNABLE PLOT</div>` +
-    `<h2>${esc(rec.code || "#" + rec.no)}</h2>` +
+    `<h2>${esc(rec.code || rec.reg || "#" + rec.no)}</h2>` +
     (rec.sym ? `<span class="zonechip" style="background:${zc}">${esc(rec.sym)}</span>` : "") +
     `<div class="sect">` +
       kv("Village", esc(rec.village)) +
@@ -485,18 +490,16 @@ function renderCard(rec, geom) {
       `<button type="button" class="ghost" id="actCopy">Copy code</button>` +
     `</div>` +
     (state.live ? "" : `<div id="livehint">Map highlight and fresh details resume when the live connection is available.</div>`);
-
   card.style.display = "block";
+
   card.querySelector(".close").addEventListener("click", closeCard);
   card.querySelectorAll("[data-goto]").forEach((b) => b.addEventListener("click", () => openPlot(b.dataset.goto)));
-
   $("actZoom").addEventListener("click", () => {
     if (geom) { try { map.fitBounds(geom.getBounds().pad(0.8), { maxZoom: 20 }); } catch (_) {} }
-    else if (state.live && rec.code) openPlot(rec.code);
+    else if (state.live && rec.id) openPlot(rec.id);
   });
-
   $("actCopy").addEventListener("click", async () => {
-    const text = rec.code || String(rec.no ?? "");
+    const text = rec.code || rec.reg || String(rec.no ?? "");
     try { await navigator.clipboard.writeText(text); } catch (_) {
       const ta = document.createElement("textarea");
       ta.value = text; document.body.appendChild(ta); ta.select();
@@ -536,9 +539,7 @@ $("regtoggle").addEventListener("click", () => {
   $("regtoggle").textContent = a.classList.contains("hidden") ? "REGISTER" : "HIDE REGISTER";
   setTimeout(() => map.invalidateSize(), 60);
 });
-
 if (window.matchMedia("(max-width: 880px)").matches) {
   $("aside").classList.add("hidden");
 }
-
 window.addEventListener("resize", () => map.invalidateSize());

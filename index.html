@@ -126,7 +126,9 @@
   .trow:hover { background: #F4F2E9; }
   .trow.sel { background: #EAF1E9; }
   .c-code { width: 104px; flex: none; font: 500 11px 'IBM Plex Mono', monospace; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .c-vil { flex: 1; min-width: 0; font-size: 12px; color: #4b463a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .c-vil { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 1px; }
+  .c-vil .v1 { font-size: 12px; color: #4b463a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .c-vil .c-name { font-size: 10px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .c-zone { width: 46px; flex: none; display: flex; align-items: center; gap: 5px; font-size: 11px; color: #4b463a; }
   .c-ext { width: 66px; flex: none; text-align: right; font: 500 11.5px 'IBM Plex Mono', monospace; }
   .empty { padding: 26px 18px; font-size: 12.5px; color: var(--muted); line-height: 1.5; }
