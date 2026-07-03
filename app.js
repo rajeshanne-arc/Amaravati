@@ -578,6 +578,9 @@ function openPlot(key) {
 
 function showFeature(f) {
   const rec = normalize(f.properties || {});
+  // final safety net: zone-coverage records (blank code, plot_no 0) hijack
+  // the view with village-sized polygons — refuse to display them
+  if (!rec.code && !(rec.reg && Number(rec.no) > 0)) return;
   const known = state.byCode.get(rec.id);
   if (known) rec.nbFromSnap = known.nb; // keep snapshot boundaries if live omits them
   state.selectedCode = rec.id;
@@ -823,15 +826,25 @@ function closeCard() {
 }
 
 /* ---------------- identify on map click ---------------- */
+// A "real" plot has a plot code, or a regcode plus a positive plot number.
+// APCRDA's layer also contains giant zone-coverage records (village planning
+// areas, reserves, roads — plot_no 0, blank codes); those must never open.
+function isRealPlotProps(pr) {
+  if (!pr) return false;
+  if (String(pr.plot_code || "").trim()) return true;
+  return !!String(pr.regcode || "").trim() && Number(pr.plot_no) > 0;
+}
+
 map.on("click", (e) => {
   if (!state.live) return;
   L.esri.identifyFeatures(esriOpts({ url: CONFIG.SERVICE }))
     .on(map).at(e.latlng)
-    .layers("visible")
+    .layers("all:" + CONFIG.PLOT_LAYER)
     .tolerance(3)
     .run((err, fc) => {
       if (err || !fc || !fc.features.length) return;
-      const f = fc.features.find((x) => x.properties && x.properties.plot_code) || fc.features[0];
+      const f = fc.features.find((x) => isRealPlotProps(x.properties));
+      if (!f) return; // clicked open zone / village / road area — nothing to open
       showFeature(f);
     });
 });
