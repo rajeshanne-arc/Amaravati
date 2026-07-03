@@ -171,6 +171,7 @@ L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
 const lpsLayer = L.esri.dynamicMapLayer(esriOpts({ url: CONFIG.SERVICE, opacity: 0.85 })).addTo(map);
 const highlight = L.layerGroup().addTo(map);
 const HL_STYLE = { color: "#17110C", weight: 2.5, dashArray: "7 5", fillColor: "#ffffff", fillOpacity: 0.25 };
+const OWNER_STYLE = { color: "#C0392B", weight: 3, fillColor: "#C0392B", fillOpacity: 0.35 };
 
 // UI elements that sit on top of the map must not pass events through to it
 L.DomEvent.disableClickPropagation($("card"));
@@ -702,33 +703,57 @@ function openOwner(name) {
 
   // highlight every plot we can place offline; fit map to them
   highlight.clearLayers();
-  const bounds = [];
-  let placed = 0;
+  const placedPlots = []; // { p, poly, center, n }
   const MAX_DRAW = 400; // keep the map responsive for very large holders
   for (const p of plots) {
-    if (placed >= MAX_DRAW) break;
+    if (placedPlots.length >= MAX_DRAW) break;
     const ll = plotLatLngs(p);
     if (!ll) continue;
-    const poly = L.polygon(ll, HL_STYLE).addTo(highlight);
+    const poly = L.polygon(ll, OWNER_STYLE).addTo(highlight);
     poly.on("click", () => openPlot(p.id));
-    bounds.push(poly.getBounds());
-    placed++;
+    let la = 0, lo = 0;
+    for (const [a, b] of ll) { la += a; lo += b; }
+    placedPlots.push({ p, poly, center: [la / ll.length, lo / ll.length] });
   }
-  if (bounds.length) {
-    let b = bounds[0];
-    for (let i = 1; i < bounds.length; i++) b = b.extend(bounds[i]);
-    try { map.fitBounds(b.pad(0.3), { maxZoom: 18 }); } catch (_) {}
+  // number the plots and drop a big tappable pin on each — tiny plot outlines
+  // are invisible when the view spans villages; the pins are what you see
+  placedPlots.forEach((x, i) => {
+    x.n = i + 1;
+    const pin = L.marker(x.center, {
+      icon: L.divIcon({ className: "", html: `<div class="plotpin">${x.n}</div>`, iconSize: [26, 26], iconAnchor: [13, 13] }),
+    }).addTo(highlight);
+    pin.on("click", () => openPlot(x.p.id));
+  });
+  const placed = placedPlots.length;
+  // fit to the majority cluster: ignore plots >10 km from the median so one
+  // bad-coordinate parcel can't fling the map somewhere meaningless
+  if (placed) {
+    const lats = placedPlots.map((x) => x.center[0]).sort((a, b) => a - b);
+    const lons = placedPlots.map((x) => x.center[1]).sort((a, b) => a - b);
+    const medC = [lats[Math.floor(lats.length / 2)], lons[Math.floor(lons.length / 2)]];
+    const kmFrom = (c) => {
+      const dLat = (c[0] - medC[0]) * 111, dLon = (c[1] - medC[1]) * 111 * Math.cos(medC[0] * Math.PI / 180);
+      return Math.hypot(dLat, dLon);
+    };
+    const fitSet = placedPlots.filter((x) => kmFrom(x.center) <= 10);
+    const use = fitSet.length ? fitSet : placedPlots;
+    let b = use[0].poly.getBounds();
+    for (let i = 1; i < use.length; i++) b = b.extend(use[i].poly.getBounds());
+    try { map.fitBounds(b.pad(0.3), { maxZoom: 17 }); } catch (_) {}
   }
 
   const totalExt = plots.reduce((s, p) => s + (typeof p.ext === "number" ? p.ext : 0), 0);
   const villages = [...new Set(plots.map((p) => p.village).filter((v) => v && v !== "—"))];
-  const rows = plots.map((p) =>
-    `<button type="button" class="ownerplot" data-code="${esc(p.id)}">` +
-      `<span class="dot" style="background:${zoneColor(p.sym)}"></span>` +
+  const pinNo = new Map(placedPlots.map((x) => [x.p.id, x.n]));
+  const rows = plots.map((p) => {
+    const n = pinNo.get(p.id);
+    return `<button type="button" class="ownerplot" data-code="${esc(p.id)}">` +
+      (n ? `<span class="op-pin">${n}</span>` : `<span class="dot" style="background:${zoneColor(p.sym)}"></span>`) +
       `<span class="op-code">${esc(p.code || p.reg || "#" + p.no)}</span>` +
       `<span class="op-vil">${esc(p.village)}</span>` +
       `<span class="op-ext">${p.ext != null ? inr(Math.round(p.ext)) : "—"}</span>` +
-    `</button>`).join("");
+    `</button>`;
+  }).join("");
 
   const card = $("card");
   card.innerHTML =
