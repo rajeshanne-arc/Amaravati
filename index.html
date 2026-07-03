@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Amaravati LPS Atlas — unofficial live viewer</title>
+<meta name="description" content="Unofficial viewer for Amaravati Land Pooling Scheme returnable plots, built on the public APCRDA GIS service." />
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/esri-leaflet@3.0.12/dist/esri-leaflet.js"></script>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root {
+    --ink: #182420; --ink-2: #26221A; --muted: #7d7768; --faint: #8a8474;
+    --paper: #F1EFE7; --panel: #FBFAF4; --line: #DDD9CB; --line-2: #E4E1D4;
+    --white: #FDFCF8; --accent: #E06A50; --link: #1D4E89;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    display: flex; flex-direction: column; overflow: hidden;
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+    background: var(--paper); color: var(--ink-2);
+  }
+  button { font: inherit; cursor: pointer; }
+  button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+
+  /* ---------- header ---------- */
+  header {
+    flex: none; display: flex; align-items: center; gap: 12px;
+    padding: 10px 16px; background: var(--ink); color: #F2EFE6;
+  }
+  .wordmark { font: 800 15px 'Archivo', sans-serif; letter-spacing: .2em; white-space: nowrap; }
+  .sub { font-size: 10.5px; opacity: .7; letter-spacing: .06em; }
+  #status {
+    font: 700 10px 'Archivo', sans-serif; letter-spacing: .12em;
+    padding: 4px 10px; border-radius: 999px; border: 1px solid; white-space: nowrap;
+  }
+  #status.wait  { color: #EED9A0; border-color: #B99A4E; }
+  #status.live  { color: #A8E5B2; border-color: #4E9B5E; }
+  #status.error { color: #F4B7A9; border-color: var(--accent); }
+  .headsearch { position: relative; margin-left: auto; }
+  .headsearch input {
+    width: min(300px, 44vw); padding: 7px 11px; border-radius: 8px; border: 1px solid #3a4a42;
+    background: #22312B; color: #F2EFE6; font: 500 12.5px 'IBM Plex Sans', sans-serif; outline: none;
+  }
+  .headsearch input::placeholder { color: #8fa096; }
+  #suggest {
+    position: absolute; top: 110%; right: 0; width: min(380px, 92vw); z-index: 1100;
+    max-height: min(420px, 62vh); overflow-y: auto;
+    background: var(--white); border: 1px solid var(--line); border-radius: 10px;
+    box-shadow: 0 10px 24px rgba(24,30,26,.16); display: none;
+  }
+  #suggest .s-note { padding: 9px 12px; font-size: 11.5px; color: var(--muted); line-height: 1.45; }
+  #suggest .s-head {
+    padding: 6px 12px 4px; font: 700 9px 'Archivo', sans-serif; letter-spacing: .16em;
+    color: var(--faint); background: #F7F5EC; border-bottom: 1px solid #F1EFE5;
+    position: sticky; top: 0;
+  }
+  #suggest .s-live {
+    display: block; width: 100%; padding: 9px 12px; text-align: left; cursor: pointer;
+    background: #EFF4FB; border: none; border-top: 1px solid #E1E9F4;
+    color: #173A63; font: 600 11.5px 'IBM Plex Sans', sans-serif;
+  }
+  #suggest .s-live:hover { background: #E4EDF9; }
+  #suggest button {
+    display: flex; gap: 8px; align-items: center; width: 100%; padding: 8px 12px;
+    background: none; border: none; border-bottom: 1px solid #F1EFE5; text-align: left;
+  }
+  #suggest button:hover { background: #F4F2E9; }
+  #suggest .code { font: 500 11.5px 'IBM Plex Mono', monospace; color: var(--ink-2); }
+  #suggest .meta { font-size: 11.5px; color: var(--muted); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* ---------- layout ---------- */
+  main { flex: 1; display: flex; min-height: 0; }
+  aside {
+    width: 380px; flex: none; display: flex; flex-direction: column; min-height: 0;
+    background: var(--panel); border-right: 1px solid var(--line);
+  }
+  #map { flex: 1; min-width: 0; position: relative; }
+
+  /* ---------- filters ---------- */
+  .filters { padding: 12px 14px 10px; border-bottom: 1px solid var(--line-2); }
+  .filters .row { display: flex; gap: 8px; }
+  .filters select {
+    flex: 1; padding: 6px 8px; border: 1px solid #CFCABB; border-radius: 8px;
+    background: #fff; font: 500 12px 'IBM Plex Sans', sans-serif; color: var(--ink-2);
+  }
+  .chips { display: flex; gap: 6px; margin-top: 9px; overflow-x: auto; scrollbar-width: none; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip {
+    display: flex; align-items: center; gap: 5px; white-space: nowrap;
+    padding: 4px 10px; border-radius: 999px; border: 1px solid #CFCABB;
+    background: #fff; color: #4b463a; font: 600 11px 'IBM Plex Sans', sans-serif;
+  }
+  .chip.on { background: var(--ink); border-color: var(--ink); color: #F2EFE6; }
+  .dot { width: 8px; height: 8px; display: inline-block; border: 1px solid rgba(24,32,28,.4); flex: none; }
+  #stats { margin-top: 9px; font-size: 11px; color: var(--muted); }
+  #stats b { color: var(--ink-2); }
+  #notice {
+    display: none; margin-top: 9px; padding: 8px 10px; border-radius: 8px;
+    background: #FBEDE9; border: 1px solid #E8C6BC; color: #7a3423; font-size: 11.5px; line-height: 1.45;
+  }
+  #notice button { margin-top: 6px; padding: 4px 10px; border-radius: 6px; border: 1px solid #C77; background: #fff; font-size: 11px; font-weight: 600; color: #7a3423; }
+
+  /* ---------- register table ---------- */
+  .thead {
+    display: flex; gap: 8px; padding: 8px 14px; border-bottom: 1px solid var(--line-2);
+    background: #F7F5EC; flex: none;
+  }
+  .thead button {
+    display: flex; align-items: center; gap: 3px; background: none; border: none; padding: 0;
+    font: 600 10.5px 'IBM Plex Sans', sans-serif; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--faint); min-width: 0;
+  }
+  .thead button.on { color: var(--ink); }
+  #tlist { flex: 1; overflow-y: auto; min-height: 0; }
+  .trow {
+    display: flex; gap: 8px; align-items: center; width: 100%; text-align: left;
+    padding: 0 14px; height: 46px; border: none; border-bottom: 1px solid #EFEDE2; background: transparent;
+  }
+  .trow:hover { background: #F4F2E9; }
+  .trow.sel { background: #EAF1E9; }
+  .c-code { width: 104px; flex: none; font: 500 11px 'IBM Plex Mono', monospace; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .c-vil { flex: 1; min-width: 0; font-size: 12px; color: #4b463a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .c-zone { width: 46px; flex: none; display: flex; align-items: center; gap: 5px; font-size: 11px; color: #4b463a; }
+  .c-ext { width: 66px; flex: none; text-align: right; font: 500 11.5px 'IBM Plex Mono', monospace; }
+  .empty { padding: 26px 18px; font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+  .foot { flex: none; padding: 8px 14px; border-top: 1px solid var(--line-2); font-size: 10px; color: var(--faint); line-height: 1.45; }
+  .foot a { color: var(--link); }
+
+  /* ---------- detail card ---------- */
+  #card {
+    display: none; position: absolute; top: 14px; right: 14px; z-index: 1000;
+    width: 330px; max-height: calc(100% - 28px); overflow-y: auto;
+    background: var(--white); border: 1px solid var(--line); border-radius: 12px;
+    box-shadow: 0 12px 32px rgba(24,30,26,.18); padding: 16px;
+    animation: cardin .2s ease-out;
+  }
+  @keyframes cardin { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { #card { animation: none; } }
+  #card .eyebrow { font: 600 10px 'IBM Plex Sans', sans-serif; letter-spacing: .18em; color: var(--faint); }
+  #card h2 { margin: 2px 0 0; font: 600 19px 'IBM Plex Mono', monospace; color: var(--ink); word-break: break-all; }
+  #card .close { position: absolute; top: 10px; right: 10px; background: none; border: none; color: #6e695b; font-size: 16px; padding: 4px 8px; }
+  #card .zonechip { display: inline-block; margin-top: 8px; font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 999px; border: 1px solid rgba(24,32,28,.25); }
+  #card .kv { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; border-bottom: 1px solid #EFEDE4; }
+  #card .kv .k { font-size: 11px; color: var(--muted); }
+  #card .kv .v { font-size: 12.5px; font-weight: 500; text-align: right; word-break: break-word; }
+  #card .sect { margin-top: 14px; }
+  .compass { display: grid; grid-template-columns: 1fr 1.1fr 1fr; gap: 6px; align-items: center; margin-top: 8px; }
+  .compass .mid {
+    border: 1.5px solid var(--ink); border-radius: 8px; min-height: 50px;
+    display: flex; align-items: center; justify-content: center; padding: 4px;
+    font: 600 10px 'IBM Plex Mono', monospace; text-align: center;
+  }
+  .compass .nb {
+    width: 100%; font: 600 10px 'IBM Plex Mono', monospace; padding: 4px 5px; border-radius: 6px;
+    border: 1px solid #C6D6EC; background: #EFF4FB; color: #173A63; word-break: break-all;
+  }
+  .compass .nb[disabled] { border-color: #E2DFD3; background: #F5F3EA; color: #8a8474; cursor: default; font-weight: 500; }
+  .actions { display: flex; gap: 8px; margin-top: 14px; }
+  .actions .primary { flex: 1; background: var(--ink); color: #F2EFE6; border: none; border-radius: 8px; padding: 8px 10px; font-size: 12px; font-weight: 600; }
+  .actions .ghost { background: var(--white); color: var(--ink); border: 1px solid #C9C4B4; border-radius: 8px; padding: 8px 12px; font-size: 12px; font-weight: 600; }
+  #livehint { margin-top: 10px; font-size: 10.5px; color: var(--faint); line-height: 1.4; }
+
+  /* ---------- popup ---------- */
+  .leaflet-popup-content-wrapper { border-radius: 10px; border: 1px solid var(--line); }
+
+  /* ---------- mobile ---------- */
+  #regtoggle { display: none; }
+  @media (max-width: 880px) {
+    main { flex-direction: column; }
+    aside {
+      order: 2; width: auto; height: 44vh; border-right: none; border-top: 1px solid var(--line);
+    }
+    aside.hidden { display: none; }
+    #map { order: 1; }
+    #card { top: auto; bottom: 12px; left: 12px; right: 12px; width: auto; max-height: 52vh; }
+    #regtoggle {
+      display: block; position: absolute; bottom: 14px; left: 14px; z-index: 900;
+      background: var(--ink); color: #F2EFE6; border: none; border-radius: 999px;
+      padding: 9px 16px; font: 700 11px 'Archivo', sans-serif; letter-spacing: .1em;
+      box-shadow: 0 6px 16px rgba(0,0,0,.25);
+    }
+    .headsearch input { width: 42vw; }
+    .sub { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="wordmark">AMARAVATI · LPS ATLAS</div>
+    <div class="sub">Returnable plot register · unofficial viewer on APCRDA GIS</div>
+  </div>
+  <span id="status" class="wait">CONNECTING…</span>
+  <div class="headsearch">
+    <input id="q" placeholder="Plot code, number or allottee name…  ( / )" autocomplete="off" />
+    <div id="suggest"></div>
+  </div>
+</header>
+
+<main>
+  <aside id="aside">
+    <div class="filters">
+      <div class="row">
+        <select id="fVillage" aria-label="Filter by village"><option>All villages</option></select>
+      </div>
+      <div class="chips" id="fFamily"></div>
+      <div id="stats">Loading register…</div>
+      <div id="notice"></div>
+    </div>
+    <div class="thead" id="thead"></div>
+    <div id="tlist"></div>
+    <div class="foot">
+      Unofficial viewer. Not a land record — verify every plot at
+      <a href="https://gis.apcrda.org/lps/index.html" target="_blank" rel="noopener">gis.apcrda.org/lps</a> ·
+      Plot data © APCRDA · Basemap © OpenStreetMap contributors.
+      <span id="snapinfo"></span>
+    </div>
+  </aside>
+
+  <div id="map">
+    <button id="regtoggle" type="button">REGISTER</button>
+    <div id="card" role="dialog" aria-label="Plot record"></div>
+  </div>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
