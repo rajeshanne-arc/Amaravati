@@ -46,7 +46,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 async function getPage(offset, attempt = 1) {
   const params = new URLSearchParams({
     where: "1=1",
-    outFields: FIELDS.join(","),
+    outFields: "*",
     returnGeometry: "false",
     f: "json",
     resultOffset: String(offset),
@@ -92,7 +92,6 @@ async function main() {
   const out = {
     generated: new Date().toISOString(),
     source: `${SERVICE}/${LAYER}`,
-    fields: FIELDS,
     count: plots.length,
     plots,
   };
