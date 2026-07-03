@@ -1,0 +1,30 @@
+name: Update LPS snapshot
+
+on:
+  schedule:
+    - cron: "30 21 * * *" # 21:30 UTC = 03:00 IST, nightly
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Fetch latest plot data from APCRDA
+        run: node scripts/fetch-snapshot.mjs
+
+      - name: Commit snapshot if it changed
+        run: |
+          git config user.name "lps-atlas-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/plots.json
+          git diff --cached --quiet || git commit -m "chore: refresh LPS snapshot"
+          git push
