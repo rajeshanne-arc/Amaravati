@@ -122,7 +122,20 @@ function normalize(a) {
 }
 
 function ingest(list, generated) {
-  state.plots = list.map(normalize).filter((p) => p.id); // keep every identifiable plot
+  const all = list.map(normalize).filter((p) => p.id);
+  // APCRDA's layer stores some plots as several identical overlapping records.
+  // Collapse rows that match on everything the user sees, so each real plot
+  // appears once. Rows sharing a code but differing (e.g. different allottee)
+  // are kept separate.
+  const seen = new Map();
+  let dupes = 0;
+  for (const p of all) {
+    const key = p.id + "|" + (p.farmer || "") + "|" + p.village + "|" + (p.no ?? "") + "|" + (p.ext ?? "");
+    if (seen.has(key)) { dupes++; continue; }
+    seen.set(key, p);
+  }
+  state.plots = [...seen.values()];
+  state.dupCount = dupes;
   state.byCode = new Map();
   for (const p of state.plots) {
     if (p.code && !state.byCode.has(p.code)) state.byCode.set(p.code, p);
@@ -399,11 +412,18 @@ function liveSearch(raw) {
         suggest.innerHTML = `<div class="s-note">No plot or allottee matched "${esc(raw)}" on the server. Names are usually recorded as SURNAME FIRSTNAME — try just the surname, and if that fails, try Telugu script.</div>`;
         return;
       }
-      const head = `<div class="s-head">FROM APCRDA SERVER · ${feats.length}${feats.length === 30 ? "+" : ""} MATCH${feats.length === 1 ? "" : "ES"}</div>`;
-      suggest.innerHTML = head + feats.map((f) => {
+      // collapse identical duplicate records the server may return
+      const seen = new Set();
+      const uniq = [];
+      for (const f of feats) {
         const p = normalize(f.properties || {});
-        return suggestRow(p, p.farmer || "(no name recorded)");
-      }).join("");
+        const key = p.id + "|" + (p.farmer || "") + "|" + p.village;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        uniq.push(p);
+      }
+      const head = `<div class="s-head">FROM APCRDA SERVER · ${uniq.length}${feats.length === 30 ? "+" : ""} MATCH${uniq.length === 1 ? "" : "ES"}</div>`;
+      suggest.innerHTML = head + uniq.map((p) => suggestRow(p, p.farmer || "(no name recorded)")).join("");
       suggest.style.display = "block";
     });
 }
