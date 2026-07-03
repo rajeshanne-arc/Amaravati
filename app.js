@@ -175,7 +175,7 @@ function applyFilters() {
     if (village !== "All villages" && p.village !== village) return false;
     if (family !== "All" && zoneFamily(p.sym) !== family) return false;
     if (ql) {
-      const hay = (p.code + " " + (p.no ?? "") + " " + p.village + " " + p.sym + " " + p.reg).toLowerCase();
+      const hay = (p.code + " " + (p.no ?? "") + " " + p.village + " " + p.sym + " " + p.reg + " " + (p.farmer || "")).toLowerCase();
       if (!hay.includes(ql)) return false;
     }
     return true;
@@ -310,7 +310,7 @@ function renderLocalSuggest() {
   const ql = qInput.value.trim();
   if (!ql) { suggest.style.display = "none"; return; }
   const hits = state.filtered.slice(0, 8);
-  let html = hits.map((p) => suggestRow(p)).join("");
+  let html = hits.map((p) => suggestRow(p, p.farmer || "")).join("");
   if (!hits.length) {
     html += `<div class="s-note">Nothing in the register matches "${esc(ql)}".</div>`;
   }
