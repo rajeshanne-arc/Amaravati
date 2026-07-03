@@ -65,12 +65,10 @@ const state = {
 /* ---------------- map ---------------- */
 const map = L.map("map", { zoomControl: true }).setView(CONFIG.MAP_CENTER, CONFIG.MAP_ZOOM);
 L.control.scale({ imperial: false }).addTo(map);
-
 L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
   maxZoom: 21, maxNativeZoom: 19,
   attribution: "© OpenStreetMap contributors",
 }).addTo(map);
-
 const lpsLayer = L.esri.dynamicMapLayer(esriOpts({ url: CONFIG.SERVICE, opacity: 0.85 })).addTo(map);
 const highlight = L.layerGroup().addTo(map);
 const HL_STYLE = { color: "#17110C", weight: 2.5, dashArray: "7 5", fillColor: "#ffffff", fillOpacity: 0.25 };
@@ -182,6 +180,7 @@ function applyFilters() {
     }
     return true;
   });
+
   const { key, dir } = state.sort;
   state.filtered.sort((a, b) => {
     const av = a[key], bv = b[key];
@@ -196,6 +195,7 @@ function applyFilters() {
   $("stats").innerHTML =
     `<b>${inr(state.filtered.length)}</b> plots` +
     (totalExt ? ` · <b>${inr(Math.round(totalExt))}</b> total extent (as recorded)` : "");
+
   renderTable();
 }
 
@@ -227,6 +227,7 @@ const COLS = [
   { key: "sym", label: "Zone", w: "46px" },
   { key: "ext", label: "Extent", w: "66px", right: true },
 ];
+
 (function buildHead() {
   const h = $("thead");
   h.innerHTML = "";
@@ -245,6 +246,7 @@ const COLS = [
     h.appendChild(b);
   });
 })();
+
 function paintHead() {
   [...$("thead").children].forEach((b) => {
     const on = b.dataset.key === state.sort.key;
@@ -270,7 +272,6 @@ function renderTable() {
   const start = Math.max(0, Math.floor(top / ROW_H) - 6);
   const count = Math.ceil(h / ROW_H) + 12;
   const slice = rows.slice(start, start + count);
-
   const parts = [`<div style="height:${start * ROW_H}px"></div>`];
   for (const p of slice) {
     const sel = p.code === state.selectedCode ? " sel" : "";
@@ -286,6 +287,7 @@ function renderTable() {
   parts.push(`<div style="height:${Math.max(0, (rows.length - start - slice.length) * ROW_H)}px"></div>`);
   tlist.innerHTML = parts.join("");
 }
+
 tlist.addEventListener("click", (e) => {
   const b = e.target.closest(".trow");
   if (b) openPlot(b.dataset.code);
@@ -325,16 +327,29 @@ function renderLocalSuggest() {
   if (b) b.addEventListener("mousedown", (e) => { e.preventDefault(); liveSearch(ql); });
 }
 
+let srvTimer = null;
+let searchSeq = 0;
+
 qInput.addEventListener("input", () => {
   state.filters.q = qInput.value;
   applyFilters();
   renderLocalSuggest();
+  // Auto-search the server for names: fires after a short pause when the
+  // local register (which holds no allottee names) comes up empty.
+  clearTimeout(srvTimer);
+  const ql = qInput.value.trim();
+  if (state.live && ql.length >= 4 && !/^\d+$/.test(ql) && state.filtered.length === 0) {
+    srvTimer = setTimeout(() => liveSearch(ql), 650);
+  }
 });
+
 suggest.addEventListener("mousedown", (e) => {
   const b = e.target.closest("button[data-code]");
   if (b) { e.preventDefault(); suggest.style.display = "none"; openPlot(b.dataset.code); }
 });
+
 qInput.addEventListener("blur", () => setTimeout(() => (suggest.style.display = "none"), 160));
+
 qInput.addEventListener("keydown", (e) => {
   if (e.key === "Enter") {
     const raw = qInput.value.trim();
@@ -345,6 +360,7 @@ qInput.addEventListener("keydown", (e) => {
   }
   if (e.key === "Escape") { qInput.blur(); suggest.style.display = "none"; }
 });
+
 window.addEventListener("keydown", (e) => {
   if (e.key === "/" && document.activeElement !== qInput) { e.preventDefault(); qInput.focus(); }
   if (e.key === "Escape") closeCard();
@@ -354,33 +370,38 @@ window.addEventListener("keydown", (e) => {
    Names are fetched per query from APCRDA's own service and never stored. */
 function liveSearch(raw) {
   if (!raw || !state.live) return;
+  const seq = ++searchSeq;
   const safe = raw.replace(/'/g, "''");
   const where = /^\d+$/.test(raw)
     ? `plot_no = ${parseInt(raw, 10)}`
     : `UPPER(plot_code) LIKE UPPER('%${safe}%') OR UPPER(farmer_n) LIKE UPPER('%${safe}%')`;
+
   suggest.innerHTML = `<div class="s-note">Searching the APCRDA server…</div>`;
   suggest.style.display = "block";
   setStatus("wait", "SEARCHING SERVER…");
+
   L.esri.query(esriOpts({ url: CONFIG.SERVICE + "/" + CONFIG.PLOT_LAYER }))
     .where(where)
     .fields(["plot_code", "plot_no", "symbology", "lpsvillage", "farmer_n"])
     .limit(30)
     .returnGeometry(false)
     .run((err, fc) => {
+      if (seq !== searchSeq) return; // a newer search superseded this one
       statusLine();
       if (err) {
-        suggest.innerHTML = `<div class="s-note">Server search failed — try again in a moment, or check CONFIG.PROXY.</div>`;
+        const detail = err.message || err.code || "unknown error";
+        suggest.innerHTML = `<div class="s-note">Server search failed: ${esc(detail)}</div>`;
         return;
       }
       const feats = (fc && fc.features) || [];
       if (!feats.length) {
-        suggest.innerHTML = `<div class="s-note">No plot or allottee matched "${esc(raw)}" on the server. Names usually appear as SURNAME FIRSTNAME — try just the surname.</div>`;
+        suggest.innerHTML = `<div class="s-note">No plot or allottee matched "${esc(raw)}" on the server. Names are usually recorded as SURNAME FIRSTNAME — try just the surname, and if that fails, try Telugu script.</div>`;
         return;
       }
       const head = `<div class="s-head">FROM APCRDA SERVER · ${feats.length}${feats.length === 30 ? "+" : ""} MATCH${feats.length === 1 ? "" : "ES"}</div>`;
       suggest.innerHTML = head + feats.map((f) => {
         const p = normalize(f.properties || {});
-        return suggestRow(p, p.farmer || "");
+        return suggestRow(p, p.farmer || "(no name recorded)");
       }).join("");
       suggest.style.display = "block";
     });
@@ -464,14 +485,16 @@ function renderCard(rec, geom) {
       `<button type="button" class="ghost" id="actCopy">Copy code</button>` +
     `</div>` +
     (state.live ? "" : `<div id="livehint">Map highlight and fresh details resume when the live connection is available.</div>`);
-  card.style.display = "block";
 
+  card.style.display = "block";
   card.querySelector(".close").addEventListener("click", closeCard);
   card.querySelectorAll("[data-goto]").forEach((b) => b.addEventListener("click", () => openPlot(b.dataset.goto)));
+
   $("actZoom").addEventListener("click", () => {
     if (geom) { try { map.fitBounds(geom.getBounds().pad(0.8), { maxZoom: 20 }); } catch (_) {} }
     else if (state.live && rec.code) openPlot(rec.code);
   });
+
   $("actCopy").addEventListener("click", async () => {
     const text = rec.code || String(rec.no ?? "");
     try { await navigator.clipboard.writeText(text); } catch (_) {
@@ -513,7 +536,9 @@ $("regtoggle").addEventListener("click", () => {
   $("regtoggle").textContent = a.classList.contains("hidden") ? "REGISTER" : "HIDE REGISTER";
   setTimeout(() => map.invalidateSize(), 60);
 });
+
 if (window.matchMedia("(max-width: 880px)").matches) {
   $("aside").classList.add("hidden");
 }
+
 window.addEventListener("resize", () => map.invalidateSize());
