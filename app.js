@@ -72,8 +72,11 @@ function parsePlotCoord(str) {
   return pts.length ? pts : null;
 }
 function plotLatLngs(rec) {
-  if (!rec || !rec.coord || !ensureProj()) return null;
-  const pts = parsePlotCoord(rec.coord);
+  if (!rec || !ensureProj()) return null;
+  // geometry lives inline (old-style snapshot) or in a per-village shard (new)
+  const src = rec.coord || state.geoCache.get(rec.id) || "";
+  if (!src) return null;
+  const pts = parsePlotCoord(src);
   if (!pts || pts.length < 3) return null;
   const [latLo, latHi] = CONFIG.LAT_RANGE, [lngLo, lngHi] = CONFIG.LNG_RANGE;
   const out = [];
@@ -84,6 +87,26 @@ function plotLatLngs(rec) {
     out.push([lat, lon]);
   }
   return out.length >= 3 ? out : null;
+}
+
+// Must match the fetch script's slug() exactly.
+function villageSlug(v) {
+  return String(v || "unknown").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "unknown";
+}
+// Fetch a village's geometry shard once; concurrent callers share the promise.
+function loadGeo(village) {
+  const s = villageSlug(village);
+  if (state.geoLoads.has(s)) return state.geoLoads.get(s);
+  const pr = fetch("data/geo/" + s + ".json" + (state.snapVersion ? "?v=" + encodeURIComponent(state.snapVersion) : ""))
+    .then((r) => { if (!r.ok) throw new Error("no shard"); return r.json(); })
+    .then((j) => {
+      const m = (j && j.plots) || {};
+      for (const k in m) if (!state.geoCache.has(k)) state.geoCache.set(k, m[k]);
+      return true;
+    })
+    .catch(() => false); // shard absent (old snapshot) — inline coords cover it
+  state.geoLoads.set(s, pr);
+  return pr;
 }
 function highlightLocal(rec, fit) {
   const ll = plotLatLngs(rec);
@@ -131,6 +154,9 @@ const state = {
   mode: "plot",         // "plot" | "owner"
   owner: null,
   dupCount: 0,
+  geoCache: new Map(),  // plot id -> outline string, filled per village on demand
+  geoLoads: new Map(),  // village slug -> in-flight/settled fetch promise
+  snapVersion: "",      // snapshot timestamp, used to version shard requests
 };
 
 /* ---------------- map ---------------- */
@@ -225,6 +251,7 @@ function ingest(list, generated) {
     }
   }
   state.snapshotDate = generated || null;
+  state.snapVersion = generated || "";
   $("snapinfo").textContent = generated ? " Snapshot: " + generated.slice(0, 10) + " (refreshed nightly)." : "";
   buildVillageSelect();
   applyFilters();
@@ -232,7 +259,9 @@ function ingest(list, generated) {
   applyDeepLink();
 }
 
-fetch(CONFIG.SNAPSHOT + "?v=" + Date.now())
+// Cache-friendly fetch: nightly data doesn't need a per-visit cache-bust, and
+// letting the CDN cache it makes repeat visits near-instant.
+fetch(CONFIG.SNAPSHOT)
   .then((r) => { if (!r.ok) throw new Error("no snapshot"); return r.json(); })
   .then((j) => {
     if (!j.plots || !j.plots.length) throw new Error("empty snapshot");
@@ -518,7 +547,16 @@ function openPlot(key) {
   state.selectedCode = key;
   renderTable();
   const rec = state.byCode.get(key) || null;
-  if (rec) { highlightLocal(rec, true); updateURL({ plot: rec.code || rec.id }); } // instant, offline
+  if (rec) {
+    updateURL({ plot: rec.code || rec.id });
+    // instant offline outline; if this village's shard isn't loaded yet,
+    // fetch it in the background and draw when it arrives
+    if (!highlightLocal(rec, true) && rec.village) {
+      loadGeo(rec.village).then((ok) => {
+        if (ok && state.mode === "plot" && state.selectedCode === key) highlightLocal(rec, true);
+      });
+    }
+  }
   const liveCode = rec ? rec.code : key; // blank-code plots can't be queried by plot_code
   const liveReg = rec ? rec.reg : "";
   if (state.live && (liveCode || liveReg)) {
@@ -657,6 +695,11 @@ function openOwner(name) {
   updateURL({ owner: key });
   renderTable();
 
+  // make sure geometry for every involved village is available first
+  const shardVillages = [...new Set(plots.map((p) => p.village))];
+  Promise.all(shardVillages.map(loadGeo)).then(() => {
+  if (state.mode !== "owner" || state.owner !== key) return; // user moved on
+
   // highlight every plot we can place offline; fit map to them
   highlight.clearLayers();
   const bounds = [];
@@ -709,6 +752,7 @@ function openOwner(name) {
   card.querySelector(".close").addEventListener("click", closeCard);
   card.querySelectorAll(".ownerplot").forEach((b) => b.addEventListener("click", () => openPlot(b.dataset.code)));
   $("ownerShare").addEventListener("click", () => copyShare($("ownerShare"), { owner: key }));
+  }); // end shard-load wrapper
 }
 
 /* ---------------- share links ---------------- */
