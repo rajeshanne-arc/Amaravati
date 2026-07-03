@@ -139,6 +139,84 @@ const inr = (n) => (typeof n === "number" ? n.toLocaleString("en-IN") : esc(n));
 const proxied = (u) => (CONFIG.PROXY ? CONFIG.PROXY.replace(/\/$/, "") + "/?" + u : u);
 const esriOpts = (o) => Object.assign({}, o, CONFIG.PROXY ? { proxy: CONFIG.PROXY.replace(/\/$/, "") + "/", useCors: false } : {});
 
+/* ---------------- language (English / Telugu) ---------------- */
+const I18N = {
+  en: {
+    subtitle: "Returnable plot register · unofficial viewer on APCRDA GIS",
+    searchPh: "Plot code, number or allottee name…  ( / )",
+    allVillages: "All villages",
+    famAll: "All", famResidential: "Residential", famCommercial: "Commercial", famIndustry: "Industry",
+    famParks: "Parks", famInstitutional: "Institutional", famReserve: "Reserve",
+    plotsWord: "plots", totalExtent: "total extent (as recorded)",
+    colPlot: "Plot", colVillage: "Village", colZone: "Zone", colExtent: "Extent",
+    noMatch: "No plots match. Clear a filter or shorten the search to widen the register.",
+    loadingReg: "Loading register…",
+    returnable: "RETURNABLE PLOT",
+    lVillage: "Village", lPlotNo: "Plot number", lTSB: "Township / Sector / Block",
+    lExtent: "Extent (as recorded)", lDims: "Dimensions", lCategory: "Category",
+    lRegCode: "Registration code", lRegDate: "Registration date", lAllottee: "Allottee",
+    needsLive: "needs live connection",
+    boundaries: "BOUNDARIES — TAP TO WALK",
+    zoom: "Zoom to plot", share: "Share", copy: "Copy code", copied: "Copied", linkCopied: "Link copied ✓",
+    ownerHolds: "This owner holds <b>{n}</b> plots", viewAll: "View all →",
+    eAllottee: "ALLOTTEE", plotsHeld: "Plots held", lVillages: "Villages", shownOnMap: "Shown on map",
+    allPlots: "ALL PLOTS — TAP TO OPEN", shareList: "Share this list",
+    history: "HISTORY — PERMANENT RECORD", noHistory: "No changes recorded since tracking began on",
+    hFarmer: "Allottee", hZone: "Zone", hExtent: "Extent", hRegDate: "Registration date", hRegCode: "Registration code",
+    nothingLocal: 'Nothing in the register matches "{q}".',
+    searchSrv: "Search allottee names & plot codes on APCRDA server ↵",
+    needsGreen: "Allottee name search asks the APCRDA server live — it needs the connection to be green (or a proxy in CONFIG.PROXY).",
+    searching: "Searching the APCRDA server…",
+    srvFail: "Server search failed: {d}",
+    srvNone: 'No plot or allottee matched "{q}" on the server. Names are usually recorded as SURNAME FIRSTNAME — try just the surname, and if that fails, try Telugu script.',
+    fromSrv: "FROM APCRDA SERVER",
+    register: "REGISTER", hideRegister: "HIDE REGISTER",
+    livehint: "Live details resume when APCRDA is reachable; the plot outline above is from the saved snapshot.",
+    snapshotLbl: "Snapshot", refreshed: "(refreshed nightly).",
+    footer: 'Unofficial viewer. Not a land record — verify every plot at <a href="https://gis.apcrda.org/lps/index.html" target="_blank" rel="noopener">gis.apcrda.org/lps</a> · Plot data © APCRDA · Basemap © OpenStreetMap contributors · <a href="about.html">About & data policy</a>.',
+    errToast: "Something went wrong — please refresh the page.",
+  },
+  te: {
+    subtitle: "రిటర్నబుల్ ప్లాట్ రిజిస్టర్ · APCRDA GIS ఆధారిత అనధికారిక వ్యూయర్",
+    searchPh: "ప్లాట్ కోడ్, నంబర్ లేదా కేటాయింపుదారు పేరు…",
+    allVillages: "అన్ని గ్రామాలు",
+    famAll: "అన్నీ", famResidential: "నివాస", famCommercial: "వాణిజ్య", famIndustry: "పరిశ్రమ",
+    famParks: "పార్కులు", famInstitutional: "సంస్థాగత", famReserve: "రిజర్వ్",
+    plotsWord: "ప్లాట్లు", totalExtent: "మొత్తం విస్తీర్ణం (నమోదైనది)",
+    colPlot: "ప్లాట్", colVillage: "గ్రామం", colZone: "జోన్", colExtent: "విస్తీర్ణం",
+    noMatch: "ఏ ప్లాట్లూ సరిపోలలేదు. ఫిల్టర్ తీసేయండి లేదా శోధనను చిన్నదిగా చేయండి.",
+    loadingReg: "రిజిస్టర్ లోడ్ అవుతోంది…",
+    returnable: "రిటర్నబుల్ ప్లాట్",
+    lVillage: "గ్రామం", lPlotNo: "ప్లాట్ నంబర్", lTSB: "టౌన్‌షిప్ / సెక్టార్ / బ్లాక్",
+    lExtent: "విస్తీర్ణం (నమోదైనది)", lDims: "కొలతలు", lCategory: "వర్గం",
+    lRegCode: "రిజిస్ట్రేషన్ కోడ్", lRegDate: "రిజిస్ట్రేషన్ తేదీ", lAllottee: "కేటాయింపుదారు",
+    needsLive: "లైవ్ కనెక్షన్ అవసరం",
+    boundaries: "సరిహద్దులు — తెరవడానికి నొక్కండి",
+    zoom: "ప్లాట్‌కు జూమ్", share: "షేర్", copy: "కోడ్ కాపీ", copied: "కాపీ అయింది", linkCopied: "లింక్ కాపీ అయింది ✓",
+    ownerHolds: "ఈ యజమానికి <b>{n}</b> ప్లాట్లు ఉన్నాయి", viewAll: "అన్నీ చూడండి →",
+    eAllottee: "కేటాయింపుదారు", plotsHeld: "ప్లాట్ల సంఖ్య", lVillages: "గ్రామాలు", shownOnMap: "మ్యాప్‌లో చూపినవి",
+    allPlots: "అన్ని ప్లాట్లు — తెరవడానికి నొక్కండి", shareList: "ఈ జాబితాను షేర్ చేయండి",
+    history: "చరిత్ర — శాశ్వత రికార్డు", noHistory: "ట్రాకింగ్ ప్రారంభమైనప్పటి నుండి మార్పులు నమోదు కాలేదు —",
+    hFarmer: "కేటాయింపుదారు", hZone: "జోన్", hExtent: "విస్తీర్ణం", hRegDate: "రిజిస్ట్రేషన్ తేదీ", hRegCode: "రిజిస్ట్రేషన్ కోడ్",
+    nothingLocal: 'రిజిస్టర్‌లో "{q}" కు సరిపోలినవి లేవు.',
+    searchSrv: "APCRDA సర్వర్‌లో పేర్లు & ప్లాట్ కోడ్‌లు వెతకండి ↵",
+    needsGreen: "పేరు శోధనకు లైవ్ కనెక్షన్ (పచ్చ గుర్తు) అవసరం.",
+    searching: "APCRDA సర్వర్‌లో వెతుకుతోంది…",
+    srvFail: "సర్వర్ శోధన విఫలమైంది: {d}",
+    srvNone: 'సర్వర్‌లో "{q}" కు సరిపోలిన ప్లాట్ లేదా కేటాయింపుదారు లేరు. పేర్లు సాధారణంగా ఇంటిపేరుతో మొదలవుతాయి — ఇంటిపేరుతో ప్రయత్నించండి.',
+    fromSrv: "APCRDA సర్వర్ నుండి",
+    register: "రిజిస్టర్", hideRegister: "రిజిస్టర్ దాచు",
+    livehint: "APCRDA అందుబాటులోకి వచ్చాక తాజా వివరాలు వస్తాయి; పై అవుట్‌లైన్ సేవ్ చేసిన స్నాప్‌షాట్ నుండి.",
+    snapshotLbl: "స్నాప్‌షాట్", refreshed: "(ప్రతి రాత్రి రిఫ్రెష్).",
+    footer: 'అనధికారిక వ్యూయర్. ఇది భూమి రికార్డు కాదు — ప్రతి ప్లాట్‌ను <a href="https://gis.apcrda.org/lps/index.html" target="_blank" rel="noopener">gis.apcrda.org/lps</a> లో ధృవీకరించండి · డేటా © APCRDA · బేస్‌మ్యాప్ © OpenStreetMap · <a href="about.html">వివరాలు & డేటా విధానం</a>.',
+    errToast: "ఏదో తప్పు జరిగింది — దయచేసి పేజీని రిఫ్రెష్ చేయండి.",
+  },
+};
+let LANG = "en";
+try { const s = localStorage.getItem("lps-lang"); if (s === "te" || s === "en") LANG = s; } catch (_) {}
+const t = (k) => (I18N[LANG] && I18N[LANG][k]) || I18N.en[k] || k;
+const tf = (k, vars) => t(k).replace(/\{(\w+)\}/g, (_, v) => (vars && vars[v] != null ? vars[v] : ""));
+
 /* ---------------- state ---------------- */
 const state = {
   plots: [],            // normalized snapshot records
@@ -146,7 +224,7 @@ const state = {
   byReg: new Map(),     // regcode -> record (for boundary walking)
   byOwner: new Map(),   // normalized allottee name -> [records]
   filtered: [],
-  filters: { q: "", village: "All villages", family: "All" },
+  filters: { q: "", village: "__ALL__", family: "All" },
   sort: { key: "no", dir: 1 },
   live: false,
   snapshotDate: null,
@@ -157,6 +235,7 @@ const state = {
   geoCache: new Map(),  // plot id -> outline string, filled per village on demand
   geoLoads: new Map(),  // village slug -> in-flight/settled fetch promise
   snapVersion: "",      // snapshot timestamp, used to version shard requests
+  changes: null,        // permanent change log: { map: id -> [entries], since }
 };
 
 /* ---------------- map ---------------- */
@@ -253,7 +332,7 @@ function ingest(list, generated) {
   }
   state.snapshotDate = generated || null;
   state.snapVersion = generated || "";
-  $("snapinfo").textContent = generated ? " Snapshot: " + generated.slice(0, 10) + " (refreshed nightly)." : "";
+  $("snapinfo").textContent = generated ? " " + t("snapshotLbl") + ": " + generated.slice(0, 10) + " " + t("refreshed") : "";
   buildVillageSelect();
   applyFilters();
   statusLine();
@@ -267,6 +346,7 @@ fetch(CONFIG.SNAPSHOT)
   .then((j) => {
     if (!j.plots || !j.plots.length) throw new Error("empty snapshot");
     ingest(j.plots, j.generated);
+    loadChanges();
   })
   .catch(() => {
     const n = $("notice");
@@ -299,16 +379,19 @@ function loadLiveSample() {
 /* ---------------- filters / sort / stats ---------------- */
 function buildVillageSelect() {
   const sel = $("fVillage");
+  const keep = state.filters.village;
   const villages = [...new Set(state.plots.map((p) => p.village).filter(Boolean))].sort();
-  sel.innerHTML = "<option>All villages</option>" + villages.map((v) => `<option>${esc(v)}</option>`).join("");
-  sel.value = "All villages";
+  sel.innerHTML = `<option value="__ALL__">${esc(t("allVillages"))}</option>` +
+    villages.map((v) => `<option value="${esc(v)}">${esc(v)}</option>`).join("");
+  sel.value = villages.includes(keep) ? keep : "__ALL__";
+  state.filters.village = sel.value;
 }
 
 function applyFilters() {
   const { q, village, family } = state.filters;
   const ql = q.trim().toLowerCase();
   state.filtered = state.plots.filter((p) => {
-    if (village !== "All villages" && p.village !== village) return false;
+    if (village !== "__ALL__" && p.village !== village) return false;
     if (family !== "All" && zoneFamily(p.sym) !== family) return false;
     if (ql) {
       const hay = (p.id + " " + p.code + " " + (p.no ?? "") + " " + p.village + " " + p.sym + " " + p.reg + " " + (p.farmer || "")).toLowerCase();
@@ -328,20 +411,20 @@ function applyFilters() {
 
   const totalExt = state.filtered.reduce((s, p) => s + (typeof p.ext === "number" ? p.ext : 0), 0);
   $("stats").innerHTML =
-    `<b>${inr(state.filtered.length)}</b> plots` +
-    (totalExt ? ` · <b>${inr(Math.round(totalExt))}</b> total extent (as recorded)` : "");
+    `<b>${inr(state.filtered.length)}</b> ${t("plotsWord")}` +
+    (totalExt ? ` · <b>${inr(Math.round(totalExt))}</b> ${t("totalExtent")}` : "");
   renderTable();
 }
 
-/* family chips */
-(function buildChips() {
+/* family chips (rebuilt on language change) */
+function buildChips() {
   const box = $("fFamily");
   box.innerHTML = "";
   FAMILIES.forEach((f) => {
     const b = document.createElement("button");
     b.type = "button";
-    b.className = "chip" + (f === "All" ? " on" : "");
-    b.innerHTML = (f !== "All" ? `<span class="dot" style="background:${FAMILY_DOT[f]}"></span>` : "") + f;
+    b.className = "chip" + (state.filters.family === f ? " on" : "");
+    b.innerHTML = (f !== "All" ? `<span class="dot" style="background:${FAMILY_DOT[f]}"></span>` : "") + esc(t("fam" + f));
     b.addEventListener("click", () => {
       state.filters.family = f;
       [...box.children].forEach((c) => c.classList.remove("on"));
@@ -350,18 +433,19 @@ function applyFilters() {
     });
     box.appendChild(b);
   });
-})();
+}
+buildChips();
 
 $("fVillage").addEventListener("change", (e) => { state.filters.village = e.target.value; applyFilters(); });
 
-/* sortable header */
+/* sortable header (labels resolved through t() so language switches apply) */
 const COLS = [
-  { key: "no", label: "Plot", w: "104px" },
-  { key: "village", label: "Village", w: "" },
-  { key: "sym", label: "Zone", w: "46px" },
-  { key: "ext", label: "Extent", w: "66px", right: true },
+  { key: "no", labelKey: "colPlot", w: "104px" },
+  { key: "village", labelKey: "colVillage", w: "" },
+  { key: "sym", labelKey: "colZone", w: "46px" },
+  { key: "ext", labelKey: "colExtent", w: "66px", right: true },
 ];
-(function buildHead() {
+function buildHead() {
   const h = $("thead");
   h.innerHTML = "";
   COLS.forEach((c) => {
@@ -371,19 +455,20 @@ const COLS = [
     if (!c.w) b.style.flex = "1";
     if (c.right) b.style.justifyContent = "flex-end";
     b.dataset.key = c.key;
-    b.textContent = c.label;
+    b.textContent = t(c.labelKey);
     b.addEventListener("click", () => {
       state.sort = { key: c.key, dir: state.sort.key === c.key ? -state.sort.dir : 1 };
       applyFilters();
     });
     h.appendChild(b);
   });
-})();
+}
+buildHead();
 function paintHead() {
   [...$("thead").children].forEach((b) => {
     const on = b.dataset.key === state.sort.key;
     b.classList.toggle("on", on);
-    b.textContent = COLS.find((c) => c.key === b.dataset.key).label + (on ? (state.sort.dir === 1 ? " ↑" : " ↓") : "");
+    b.textContent = t(COLS.find((c) => c.key === b.dataset.key).labelKey) + (on ? (state.sort.dir === 1 ? " ↑" : " ↓") : "");
   });
 }
 
@@ -396,7 +481,7 @@ function renderTable() {
   paintHead();
   const rows = state.filtered;
   if (!rows.length) {
-    tlist.innerHTML = `<div class="empty">No plots match. Clear a filter or shorten the search to widen the register.</div>`;
+    tlist.innerHTML = `<div class="empty">${esc(t("noMatch"))}</div>`;
     return;
   }
   const top = tlist.scrollTop;
@@ -444,14 +529,14 @@ function renderLocalSuggest() {
   const hits = state.filtered.slice(0, 8);
   let html = hits.map((p) => suggestRow(p, p.farmer || "")).join("");
   if (!hits.length) {
-    html += `<div class="s-note">Nothing in the register matches "${esc(ql)}".</div>`;
+    html += `<div class="s-note">${tf("nothingLocal", { q: esc(ql) })}</div>`;
   }
   // Allottee names live on APCRDA's server, not in the local register —
   // offer a live server search for any non-numeric query.
   if (ql.length >= 3 && !/^\d+$/.test(ql)) {
     html += state.live
-      ? `<button type="button" class="s-live" id="srvBtn">Search allottee names &amp; plot codes on APCRDA server ↵</button>`
-      : `<div class="s-note">Allottee name search asks the APCRDA server live — it needs the connection to be green (or a proxy in CONFIG.PROXY).</div>`;
+      ? `<button type="button" class="s-live" id="srvBtn">${esc(t("searchSrv"))}</button>`
+      : `<div class="s-note">${esc(t("needsGreen"))}</div>`;
   }
   suggest.innerHTML = html;
   suggest.style.display = "block";
@@ -503,7 +588,7 @@ function liveSearch(raw) {
   const where = /^\d+$/.test(raw)
     ? `plot_no = ${parseInt(raw, 10)}`
     : `UPPER(plot_code) LIKE UPPER('%${safe}%') OR UPPER(farmer_n) LIKE UPPER('%${safe}%')`;
-  suggest.innerHTML = `<div class="s-note">Searching the APCRDA server…</div>`;
+  suggest.innerHTML = `<div class="s-note">${esc(t("searching"))}</div>`;
   suggest.style.display = "block";
   setStatus("wait", "SEARCHING SERVER…");
   L.esri.query(esriOpts({ url: CONFIG.SERVICE + "/" + CONFIG.PLOT_LAYER }))
@@ -516,12 +601,12 @@ function liveSearch(raw) {
       statusLine();
       if (err) {
         const detail = err.message || err.code || "unknown error";
-        suggest.innerHTML = `<div class="s-note">Server search failed: ${esc(detail)}</div>`;
+        suggest.innerHTML = `<div class="s-note">${tf("srvFail", { d: esc(detail) })}</div>`;
         return;
       }
       const feats = (fc && fc.features) || [];
       if (!feats.length) {
-        suggest.innerHTML = `<div class="s-note">No plot or allottee matched "${esc(raw)}" on the server. Names are usually recorded as SURNAME FIRSTNAME — try just the surname, and if that fails, try Telugu script.</div>`;
+        suggest.innerHTML = `<div class="s-note">${tf("srvNone", { q: esc(raw) })}</div>`;
         return;
       }
       // collapse identical duplicate records the server may return
@@ -534,7 +619,7 @@ function liveSearch(raw) {
         seen.add(key);
         uniq.push(p);
       }
-      const head = `<div class="s-head">FROM APCRDA SERVER · ${uniq.length}${feats.length === 30 ? "+" : ""} MATCH${uniq.length === 1 ? "" : "ES"}</div>`;
+      const head = `<div class="s-head">${esc(t("fromSrv"))} · ${uniq.length}${feats.length === 30 ? "+" : ""}</div>`;
       suggest.innerHTML = head + uniq.map((p) => suggestRow(p, p.farmer || "(no name recorded)")).join("");
       suggest.style.display = "block";
     });
@@ -614,6 +699,43 @@ function nbCell(val) {
   return `<button type="button" class="nb nb-label" disabled>${esc(t)}</button>`;
 }
 
+/* ---------------- permanent change history ---------------- */
+// data/changes.json is an append-only log the nightly job writes: every
+// ownership / zone / extent / registration change, kept forever (and doubly
+// preserved by git history). Loaded lazily; the card shows a plot's entries.
+function loadChanges() {
+  fetch("data/changes.json" + (state.snapVersion ? "?v=" + encodeURIComponent(state.snapVersion) : ""))
+    .then((r) => (r.ok ? r.json() : null))
+    .then((j) => {
+      if (!j || !Array.isArray(j.changes)) return;
+      const m = new Map();
+      for (const c of j.changes) {
+        let a = m.get(c.id);
+        if (!a) { a = []; m.set(c.id, a); }
+        a.push(c);
+      }
+      state.changes = { map: m, since: (j.since || "").slice(0, 10) };
+      // refresh an open plot card so its history appears
+      if (state.mode === "plot" && state.selectedCode) {
+        const r = state.byCode.get(state.selectedCode);
+        if (r) renderCard(r, null);
+      }
+    })
+    .catch(() => {});
+}
+
+const HIST_LABEL_KEYS = { farmer_n: "hFarmer", symbology: "hZone", alloted_ex: "hExtent", reg_date_1: "hRegDate", regcode: "hRegCode" };
+function historyHtml(rec) {
+  if (!state.changes) return ""; // log not loaded yet
+  const list = state.changes.map.get(rec.id) || [];
+  const rows = list.slice().reverse().slice(0, 25).map((c) =>
+    `<div class="hist"><span class="hd">${esc(c.d)}</span> ${esc(t(HIST_LABEL_KEYS[c.f] || c.f))}: ` +
+    `<s>${esc(c.from || "—")}</s> → <b>${esc(c.to || "—")}</b></div>`).join("");
+  return `<div class="sect"><div class="eyebrow">${esc(t("history"))}</div>` +
+    (rows || `<div class="hist none">${esc(t("noHistory"))} ${esc(state.changes.since || "—")}.</div>`) +
+    `</div>`;
+}
+
 function renderCard(rec, geom) {
   const card = $("card");
   if (!rec) { card.style.display = "none"; return; }
@@ -621,35 +743,36 @@ function renderCard(rec, geom) {
   const zc = zoneColor(rec.sym);
   card.innerHTML =
     `<button type="button" class="close" aria-label="Close">✕</button>` +
-    `<div class="eyebrow">RETURNABLE PLOT</div>` +
+    `<div class="eyebrow">${esc(t("returnable"))}</div>` +
     `<h2>${esc(rec.code || rec.reg || "#" + rec.no)}</h2>` +
     (rec.sym ? `<span class="zonechip" style="background:${zc}">${esc(rec.sym)}</span>` : "") +
     `<div class="sect">` +
-      kv("Village", esc(rec.village)) +
-      (rec.no != null ? kv("Plot number", esc(rec.no)) : "") +
-      kv("Township / Sector / Block", `${esc(rec.twp ?? "—")} / ${esc(rec.sec ?? "—")} / ${esc(rec.blk ?? "—")}`) +
-      (rec.ext != null ? kv("Extent (as recorded)", inr(rec.ext)) : "") +
-      (rec.len || rec.wid ? kv("Dimensions", `${esc(rec.wid ?? "?")} × ${esc(rec.len ?? "?")}`) : "") +
-      (rec.categ ? kv("Category", esc(rec.categ)) : "") +
-      (rec.reg ? kv("Registration code", `<span class="mono">${esc(rec.reg)}</span>`) : "") +
-      (rec.regdate ? kv("Registration date", esc(rec.regdate)) : "") +
-      kv("Allottee", rec.farmer ? esc(rec.farmer) : (state.live ? "—" : "<i>needs live connection</i>")) +
+      kv(esc(t("lVillage")), esc(rec.village)) +
+      (rec.no != null ? kv(esc(t("lPlotNo")), esc(rec.no)) : "") +
+      kv(esc(t("lTSB")), `${esc(rec.twp ?? "—")} / ${esc(rec.sec ?? "—")} / ${esc(rec.blk ?? "—")}`) +
+      (rec.ext != null ? kv(esc(t("lExtent")), inr(rec.ext)) : "") +
+      (rec.len || rec.wid ? kv(esc(t("lDims")), `${esc(rec.wid ?? "?")} × ${esc(rec.len ?? "?")}`) : "") +
+      (rec.categ ? kv(esc(t("lCategory")), esc(rec.categ)) : "") +
+      (rec.reg ? kv(esc(t("lRegCode")), `<span class="mono">${esc(rec.reg)}</span>`) : "") +
+      (rec.regdate ? kv(esc(t("lRegDate")), esc(rec.regdate)) : "") +
+      kv(esc(t("lAllottee")), rec.farmer ? esc(rec.farmer) : (state.live ? "—" : `<i>${esc(t("needsLive"))}</i>`)) +
     `</div>` +
     ownerLineHtml(rec) +
     `<div class="sect">` +
-      `<div class="eyebrow">BOUNDARIES — TAP TO WALK</div>` +
+      `<div class="eyebrow">${esc(t("boundaries"))}</div>` +
       `<div class="compass">` +
         `<div></div>${nbCell(nb.N)}<div></div>` +
         `${nbCell(nb.W)}<div class="mid" style="background:${zc}">№ ${esc(rec.no ?? "")}</div>${nbCell(nb.E)}` +
         `<div></div>${nbCell(nb.S)}<div></div>` +
       `</div>` +
     `</div>` +
+    historyHtml(rec) +
     `<div class="actions">` +
-      `<button type="button" class="primary" id="actZoom">Zoom to plot</button>` +
-      `<button type="button" class="ghost" id="actShare">Share</button>` +
-      `<button type="button" class="ghost" id="actCopy">Copy code</button>` +
+      `<button type="button" class="primary" id="actZoom">${esc(t("zoom"))}</button>` +
+      `<button type="button" class="ghost" id="actShare">${esc(t("share"))}</button>` +
+      `<button type="button" class="ghost" id="actCopy">${esc(t("copy"))}</button>` +
     `</div>` +
-    (state.live ? "" : `<div id="livehint">Live details resume when APCRDA is reachable; the plot outline above is from the saved snapshot.</div>`);
+    (state.live ? "" : `<div id="livehint">${esc(t("livehint"))}</div>`);
   card.style.display = "block";
 
   card.querySelector(".close").addEventListener("click", closeCard);
@@ -669,8 +792,8 @@ function renderCard(rec, geom) {
       try { document.execCommand("copy"); } catch (_) {}
       document.body.removeChild(ta);
     }
-    $("actCopy").textContent = "Copied";
-    setTimeout(() => { const b = $("actCopy"); if (b) b.textContent = "Copy code"; }, 1400);
+    $("actCopy").textContent = t("copied");
+    setTimeout(() => { const b = $("actCopy"); if (b) b.textContent = t("copy"); }, 1400);
   });
 }
 
@@ -680,8 +803,8 @@ function ownerLineHtml(rec) {
   if (!name || isInstitutionalOwner(name)) return "";
   const n = ownerPlots(name).length;
   if (n <= 1) return "";
-  return `<div class="ownerbar"><span>This owner holds <b>${n}</b> plots</span>` +
-    `<button type="button" id="ownerLink" data-owner="${esc(name)}">View all →</button></div>`;
+  return `<div class="ownerbar"><span>${tf("ownerHolds", { n })}</span>` +
+    `<button type="button" id="ownerLink" data-owner="${esc(name)}">${esc(t("viewAll"))}</button></div>`;
 }
 
 function openOwner(name) {
@@ -693,7 +816,7 @@ function openOwner(name) {
   state.selectedCode = null;
   if (window.matchMedia("(max-width: 880px)").matches) {
     $("aside").classList.add("hidden");
-    $("regtoggle").textContent = "REGISTER";
+    $("regtoggle").textContent = t("register");
     setTimeout(() => map.invalidateSize(), 60);
   }
   updateURL({ owner: key });
@@ -761,20 +884,20 @@ function openOwner(name) {
   const card = $("card");
   card.innerHTML =
     `<button type="button" class="close" aria-label="Close">✕</button>` +
-    `<div class="eyebrow">ALLOTTEE</div>` +
+    `<div class="eyebrow">${esc(t("eAllottee"))}</div>` +
     `<h2 style="font-family:'IBM Plex Sans',sans-serif;font-size:18px;">${esc(name)}</h2>` +
     `<div class="sect">` +
-      kv("Plots held", `<b>${plots.length}</b>`) +
-      (totalExt ? kv("Total extent (as recorded)", inr(Math.round(totalExt))) : "") +
-      kv("Villages", esc(villages.join(", ") || "—")) +
-      (placed < plots.length ? kv("Shown on map", `${placed} of ${plots.length}`) : "") +
+      kv(esc(t("plotsHeld")), `<b>${plots.length}</b>`) +
+      (totalExt ? kv(esc(t("totalExtent")), inr(Math.round(totalExt))) : "") +
+      kv(esc(t("lVillages")), esc(villages.join(", ") || "—")) +
+      (placed < plots.length ? kv(esc(t("shownOnMap")), `${placed} / ${plots.length}`) : "") +
     `</div>` +
     `<div class="sect">` +
-      `<div class="eyebrow">ALL PLOTS — TAP TO OPEN</div>` +
+      `<div class="eyebrow">${esc(t("allPlots"))}</div>` +
       `<div class="ownerlist">${rows}</div>` +
     `</div>` +
     `<div class="actions">` +
-      `<button type="button" class="primary" id="ownerShare">Share this list</button>` +
+      `<button type="button" class="primary" id="ownerShare">${esc(t("shareList"))}</button>` +
     `</div>`;
   card.style.display = "block";
   card.querySelector(".close").addEventListener("click", closeCard);
@@ -800,7 +923,7 @@ async function copyShare(btn, params) {
     document.body.removeChild(ta);
   }
   const old = btn.textContent;
-  btn.textContent = "Link copied ✓";
+  btn.textContent = t("linkCopied");
   setTimeout(() => { btn.textContent = old; }, 1500);
 }
 function applyDeepLink() {
@@ -853,10 +976,58 @@ map.on("click", (e) => {
 $("regtoggle").addEventListener("click", () => {
   const a = $("aside");
   a.classList.toggle("hidden");
-  $("regtoggle").textContent = a.classList.contains("hidden") ? "REGISTER" : "HIDE REGISTER";
+  $("regtoggle").textContent = a.classList.contains("hidden") ? t("register") : t("hideRegister");
   setTimeout(() => map.invalidateSize(), 60);
 });
 if (window.matchMedia("(max-width: 880px)").matches) {
   $("aside").classList.add("hidden");
 }
 window.addEventListener("resize", () => map.invalidateSize());
+
+/* ---------------- language switch + boot chrome ---------------- */
+function applyLang() {
+  document.documentElement.lang = LANG === "te" ? "te" : "en";
+  $("q").placeholder = t("searchPh");
+  $("q").setAttribute("aria-label", t("searchPh"));
+  const lb = $("langbtn");
+  if (lb) lb.textContent = LANG === "en" ? "\u0c24\u0c46\u0c32\u0c41\u0c17\u0c41" : "English";
+  const sub = $("subtitle");
+  if (sub) sub.textContent = t("subtitle");
+  const foot = $("f_unofficial");
+  if (foot) foot.innerHTML = t("footer"); // fixed strings from our own dictionary
+  if (state.snapshotDate) {
+    $("snapinfo").textContent = " " + t("snapshotLbl") + ": " + state.snapshotDate.slice(0, 10) + " " + t("refreshed");
+  }
+  const a = $("aside");
+  $("regtoggle").textContent = a.classList.contains("hidden") ? t("register") : t("hideRegister");
+  buildChips();
+  buildHead();
+  buildVillageSelect();
+  applyFilters();
+  // re-render whatever's open so its labels switch too
+  if (state.mode === "owner" && state.owner) openOwner(state.owner);
+  else if (state.selectedCode) {
+    const r = state.byCode.get(state.selectedCode);
+    if (r) renderCard(r, null);
+  }
+}
+const langBtn = $("langbtn");
+if (langBtn) langBtn.addEventListener("click", () => {
+  LANG = LANG === "en" ? "te" : "en";
+  try { localStorage.setItem("lps-lang", LANG); } catch (_) {}
+  applyLang();
+});
+applyLang();
+
+/* lightweight error surfacing — enterprise sites never fail silently */
+let errShown = false;
+window.addEventListener("error", () => {
+  if (errShown) return;
+  errShown = true;
+  const d = document.createElement("div");
+  d.id = "errtoast";
+  d.setAttribute("role", "alert");
+  d.textContent = t("errToast");
+  document.body.appendChild(d);
+  setTimeout(() => d.remove(), 6000);
+});

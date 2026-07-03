@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>About &amp; data policy — Amaravati LPS Atlas</title>
+<meta name="description" content="Data sources, disclaimer, privacy and correction process for the Amaravati LPS Atlas, an unofficial viewer of APCRDA land pooling data." />
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap');
+  :root { --ink:#182420; --ink2:#26221A; --muted:#7d7768; --paper:#F1EFE7; --panel:#FBFAF4; --line:#DDD9CB; --link:#1D4E89; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink2); font-family:'IBM Plex Sans',system-ui,sans-serif; }
+  header { background:var(--ink); color:#F2EFE6; padding:14px 20px; display:flex; align-items:center; gap:14px; }
+  .wordmark { font:800 15px 'Archivo',sans-serif; letter-spacing:.2em; }
+  header a { color:#A8E5B2; font-size:12.5px; margin-left:auto; }
+  main { max-width:760px; margin:0 auto; padding:28px 20px 60px; }
+  h1 { font:800 26px 'Archivo',sans-serif; letter-spacing:.02em; margin:.2em 0 .6em; }
+  h2 { font:700 15px 'Archivo',sans-serif; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin:2.2em 0 .6em; }
+  p, li { font-size:14.5px; line-height:1.65; }
+  a { color:var(--link); }
+  code { font:500 12.5px 'IBM Plex Mono',monospace; background:#EFEDE4; padding:1px 6px; border-radius:5px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px 18px; margin:14px 0; }
+  .te { color:#3d4a44; }
+</style>
+</head>
+<body>
+<header>
+  <div class="wordmark">AMARAVATI · LPS ATLAS</div>
+  <a href="./">← Back to the map</a>
+</header>
+<main>
+  <h1>About this site &amp; its data</h1>
+
+  <div class="card">
+    <b>This is an unofficial viewer, not a land record.</b> Nothing shown here creates, proves
+    or transfers any right in land. For any legal, financial or registration purpose, verify
+    every plot with the official APCRDA viewer at
+    <a href="https://gis.apcrda.org/lps/index.html" target="_blank" rel="noopener">gis.apcrda.org/lps</a>
+    and with APCRDA / the Sub-Registrar's office.
+    <p class="te">ఇది అనధికారిక వ్యూయర్ మాత్రమే — భూమి రికార్డు కాదు. చట్టపరమైన, ఆర్థిక లేదా
+    రిజిస్ట్రేషన్ అవసరాలకు ప్రతి ప్లాట్‌ను అధికారిక APCRDA వ్యూయర్‌లో ధృవీకరించండి.</p>
+  </div>
+
+  <h2>Where the data comes from</h2>
+  <p>All plot data is read from the Andhra Pradesh Capital Region Development Authority's public
+  GIS service (<code>APCRDAGIS/LPS_Plot</code>). A snapshot is taken automatically every night at
+  about 03:00 IST and published here; individual plot lookups additionally query APCRDA's server
+  live when it is reachable. The snapshot date is always shown in the site's footer. Zoning
+  colours follow APCRDA's own published palette.</p>
+
+  <h2>Change history</h2>
+  <p>Each night's snapshot is compared with the previous one. Any change to a plot's allottee,
+  zone, extent, registration code or registration date is appended to a permanent log and shown
+  in that plot's record under <b>History</b>. Entries are never edited or removed, and the
+  underlying version history preserves every past snapshot as a second permanent record. Tracking
+  covers changes from the date the log began — earlier changes are not recoverable from the
+  public service.</p>
+
+  <h2>Names and privacy</h2>
+  <p>Allottee names appear exactly as APCRDA publishes them on its own public viewer; this site
+  adds no information of its own. Land allotment registers are public records, and showing them
+  supports the scheme's transparency. If a name or plot detail appears wrong here, first check
+  the official viewer — if the error exists there too, report it to APCRDA; if it appears only
+  here, it will be corrected by the next nightly refresh, since this site republishes rather
+  than edits. Requests concerning this site's copy of the data can be raised on the project's
+  GitHub repository.</p>
+
+  <h2>How to read a plot record</h2>
+  <ul>
+    <li><b>Plot code</b> (e.g. <code>25-778-4644-30-C30</code>) is APCRDA's identifier; the
+      <b>registration code</b> is the longer form used in registration documents.</li>
+    <li><b>Zone</b> letters: R = residential, C = commercial, I = industry, P = parks and open
+      space, S = institutional (government, education), U = reserve.</li>
+    <li><b>Boundaries</b> show what adjoins the plot on each side — a neighbouring plot (tap to
+      open it) or a road/zone description.</li>
+    <li><b>Extent</b> is shown exactly as recorded by APCRDA, without unit conversion.</li>
+  </ul>
+
+  <h2>Accuracy limits, honestly stated</h2>
+  <ul>
+    <li>Plot outlines are drawn from coordinates in APCRDA's data; a small number of records in
+      the source have inconsistent locations, and the site skips these from map fits.</li>
+    <li>Owner grouping is by name as recorded — two different people with the identical recorded
+      name will appear as one; the same person spelled two ways will appear as two.</li>
+    <li>The register may be up to one day behind the official service between nightly refreshes.</li>
+  </ul>
+
+  <h2>Credits</h2>
+  <p>Plot data © APCRDA · Basemap © OpenStreetMap contributors · Built with Leaflet,
+  Esri Leaflet and proj4js.</p>
+</main>
+</body>
+</html>
