@@ -103,6 +103,11 @@ function ownerNames(rec) {
 }
 function primaryOwner(rec) { const ns = ownerNames(rec); return ns.length ? ns[0] : ""; }
 function ownerPlots(name) { return state.byOwner.get(ownerKey(name)) || []; }
+// APCRDA, government and similar hold thousands of reserve/road parcels and
+// aren't real allottees to browse — don't offer an owner view for them.
+function isInstitutionalOwner(name) {
+  return /\b(APCRDA|CRDA|GOVT|GOVERNMENT|AUTHORITY|MUNICIPAL|CORPORATION|PANCHAYAT|NARL|VACANT|RESERVE|ROAD)\b/i.test(name || "");
+}
 
 /* ---------------- tiny helpers ---------------- */
 const $ = (id) => document.getElementById(id);
@@ -549,12 +554,22 @@ function showFeature(f) {
 
 function kv(k, v) { return `<div class="kv"><span class="k">${k}</span><span class="v">${v}</span></div>`; }
 
+// Boundary fields sometimes hold a real neighbouring plot code
+// (e.g. "25-182-778-4644-31-C29") and sometimes a descriptive label
+// (e.g. "U1-Reserve zone", "17.0 mtr Road", "Residential Vacant").
+// Only real codes — dash-separated, a digit present, and no spaces —
+// become clickable; labels render as plain text.
+function looksLikeCode(t) {
+  return /^[0-9A-Za-z\-\/]+$/.test(t) && t.includes("-") && /\d/.test(t);
+}
 function nbCell(val) {
   const t = String(val || "").trim();
   if (!t) return `<button type="button" class="nb" disabled>—</button>`;
-  const target = state.byReg.get(t);
-  if (target) return `<button type="button" class="nb" data-goto="${esc(target.id)}" title="Open boundary plot">${esc(t)}</button>`;
-  return `<button type="button" class="nb" disabled>${esc(t)}</button>`;
+  if (looksLikeCode(t)) {
+    const target = state.byReg.get(t) || state.byCode.get(t);
+    if (target) return `<button type="button" class="nb" data-goto="${esc(target.id)}" title="Open boundary plot">${esc(t)}</button>`;
+  }
+  return `<button type="button" class="nb nb-label" disabled>${esc(t)}</button>`;
 }
 
 function renderCard(rec, geom) {
@@ -620,7 +635,7 @@ function renderCard(rec, geom) {
 /* ---------------- owner view: all plots held by one allottee ---------------- */
 function ownerLineHtml(rec) {
   const name = primaryOwner(rec);
-  if (!name) return "";
+  if (!name || isInstitutionalOwner(name)) return "";
   const n = ownerPlots(name).length;
   if (n <= 1) return "";
   return `<div class="ownerbar"><span>This owner holds <b>${n}</b> plots</span>` +
@@ -646,7 +661,9 @@ function openOwner(name) {
   highlight.clearLayers();
   const bounds = [];
   let placed = 0;
+  const MAX_DRAW = 400; // keep the map responsive for very large holders
   for (const p of plots) {
+    if (placed >= MAX_DRAW) break;
     const ll = plotLatLngs(p);
     if (!ll) continue;
     const poly = L.polygon(ll, HL_STYLE).addTo(highlight);
