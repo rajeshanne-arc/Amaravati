@@ -11,6 +11,12 @@ const CONFIG = {
   PROXY: "",            // e.g. "https://your-worker.workers.dev" if status shows BLOCKED
   MAP_CENTER: [16.53, 80.51],
   MAP_ZOOM: 13,
+  // plotcoord field is in UTM Zone 44N (WGS84). If plots draw offset on the map,
+  // this is the one thing to change (e.g. zone 43 or 44). Bounds sanity-check
+  // rejects mis-projected points so a wrong guess degrades gracefully.
+  UTM_PROJ: "+proj=utm +zone=44 +datum=WGS84 +units=m +no_defs",
+  LAT_RANGE: [15.5, 17.5],
+  LNG_RANGE: [79.0, 82.0],
 };
 
 /* ---------------- zoning palette (official RGB, keyed by code prefix) ---- */
@@ -42,6 +48,62 @@ function zoneFamily(sym) {
   return FAMILY_OF[c.charAt(0)] || "Reserve";
 }
 
+/* ---------------- geometry (offline, from the plotcoord field) ---------------- */
+// plotcoord looks like "E,N;E,N;E,N;..." in UTM Zone 44N. We reproject to
+// lat/lng with proj4 (loaded from CDN) so map highlighting works with no live
+// connection. If proj4 is missing or points fall outside Amaravati, we return
+// null and the caller falls back to the live service.
+let _projReady = false;
+function ensureProj() {
+  if (_projReady) return true;
+  if (typeof proj4 === "undefined") return false;
+  try { proj4.defs("APCRDA_UTM", CONFIG.UTM_PROJ); _projReady = true; return true; }
+  catch (_) { return false; }
+}
+function parsePlotCoord(str) {
+  if (!str) return null;
+  const pts = [];
+  for (const pair of String(str).split(";")) {
+    const c = pair.split(",");
+    if (c.length < 2) continue;
+    const e = parseFloat(c[0]), n = parseFloat(c[1]);
+    if (Number.isFinite(e) && Number.isFinite(n)) pts.push([e, n]);
+  }
+  return pts.length ? pts : null;
+}
+function plotLatLngs(rec) {
+  if (!rec || !rec.coord || !ensureProj()) return null;
+  const pts = parsePlotCoord(rec.coord);
+  if (!pts || pts.length < 3) return null;
+  const [latLo, latHi] = CONFIG.LAT_RANGE, [lngLo, lngHi] = CONFIG.LNG_RANGE;
+  const out = [];
+  for (const [e, n] of pts) {
+    let lon, lat;
+    try { [lon, lat] = proj4("APCRDA_UTM", "WGS84", [e, n]); } catch (_) { return null; }
+    if (lat < latLo || lat > latHi || lon < lngLo || lon > lngHi) return null; // wrong projection / bad point
+    out.push([lat, lon]);
+  }
+  return out.length >= 3 ? out : null;
+}
+function highlightLocal(rec, fit) {
+  const ll = plotLatLngs(rec);
+  if (!ll) return false;
+  highlight.clearLayers();
+  const poly = L.polygon(ll, HL_STYLE).addTo(highlight);
+  if (fit) { try { map.fitBounds(poly.getBounds().pad(0.6), { maxZoom: 19 }); } catch (_) {} }
+  return true;
+}
+
+/* ---------------- owner-name helpers ---------------- */
+function ownerKey(name) { return String(name || "").trim().toUpperCase().replace(/\s+/g, " "); }
+// a plot's allottee field may list several co-owners separated by commas
+function ownerNames(rec) {
+  if (!rec || !rec.farmer) return [];
+  return [...new Set(rec.farmer.split(",").map(ownerKey).filter(Boolean))];
+}
+function primaryOwner(rec) { const ns = ownerNames(rec); return ns.length ? ns[0] : ""; }
+function ownerPlots(name) { return state.byOwner.get(ownerKey(name)) || []; }
+
 /* ---------------- tiny helpers ---------------- */
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "—").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -54,12 +116,16 @@ const state = {
   plots: [],            // normalized snapshot records
   byCode: new Map(),
   byReg: new Map(),     // regcode -> record (for boundary walking)
+  byOwner: new Map(),   // normalized allottee name -> [records]
   filtered: [],
   filters: { q: "", village: "All villages", family: "All" },
   sort: { key: "no", dir: 1 },
   live: false,
   snapshotDate: null,
   selectedCode: null,
+  mode: "plot",         // "plot" | "owner"
+  owner: null,
+  dupCount: 0,
 };
 
 /* ---------------- map ---------------- */
@@ -118,6 +184,7 @@ function normalize(a) {
     categ: a.plot_categ, reg: rawReg, regdate: a.reg_date_1 || null,
     nb: { N: (a.regcode_n || "").trim(), S: (a.regcode_s || "").trim(), E: (a.regcode_e || "").trim(), W: (a.regcode_w || "").trim() },
     farmer: (a.farmer_n || "").trim() || null,
+    coord: a.plotcoord || "", // UTM polygon vertices for offline highlighting
   };
 }
 
@@ -143,11 +210,21 @@ function ingest(list, generated) {
   }
   state.byReg = new Map();
   for (const p of state.plots) if (p.reg) state.byReg.set(p.reg, p);
+  // index plots by each allottee (co-owners split on comma) for the owner view
+  state.byOwner = new Map();
+  for (const p of state.plots) {
+    for (const nm of ownerNames(p)) {
+      let arr = state.byOwner.get(nm);
+      if (!arr) { arr = []; state.byOwner.set(nm, arr); }
+      arr.push(p);
+    }
+  }
   state.snapshotDate = generated || null;
   $("snapinfo").textContent = generated ? " Snapshot: " + generated.slice(0, 10) + " (refreshed nightly)." : "";
   buildVillageSelect();
   applyFilters();
   statusLine();
+  applyDeepLink();
 }
 
 fetch(CONFIG.SNAPSHOT + "?v=" + Date.now())
@@ -431,9 +508,12 @@ function liveSearch(raw) {
 /* ---------------- live plot lookup + card ---------------- */
 function openPlot(key) {
   if (!key) return;
+  state.mode = "plot";
+  state.owner = null;
   state.selectedCode = key;
   renderTable();
   const rec = state.byCode.get(key) || null;
+  if (rec) { highlightLocal(rec, true); updateURL({ plot: rec.code || rec.id }); } // instant, offline
   const liveCode = rec ? rec.code : key; // blank-code plots can't be queried by plot_code
   const liveReg = rec ? rec.reg : "";
   if (state.live && (liveCode || liveReg)) {
@@ -443,6 +523,7 @@ function openPlot(key) {
     L.esri.query(esriOpts({ url: CONFIG.SERVICE + "/" + CONFIG.PLOT_LAYER }))
       .where(clause).limit(1).returnGeometry(true)
       .run((err, fc) => {
+        if (state.mode !== "plot" || state.selectedCode !== key) return; // user moved on
         if (!err && fc && fc.features.length) showFeature(fc.features[0]);
         else renderCard(rec, null); // fall back to snapshot record
       });
@@ -497,6 +578,7 @@ function renderCard(rec, geom) {
       (rec.regdate ? kv("Registration date", esc(rec.regdate)) : "") +
       kv("Allottee", rec.farmer ? esc(rec.farmer) : (state.live ? "—" : "<i>needs live connection</i>")) +
     `</div>` +
+    ownerLineHtml(rec) +
     `<div class="sect">` +
       `<div class="eyebrow">BOUNDARIES — TAP TO WALK</div>` +
       `<div class="compass">` +
@@ -507,17 +589,21 @@ function renderCard(rec, geom) {
     `</div>` +
     `<div class="actions">` +
       `<button type="button" class="primary" id="actZoom">Zoom to plot</button>` +
+      `<button type="button" class="ghost" id="actShare">Share</button>` +
       `<button type="button" class="ghost" id="actCopy">Copy code</button>` +
     `</div>` +
-    (state.live ? "" : `<div id="livehint">Map highlight and fresh details resume when the live connection is available.</div>`);
+    (state.live ? "" : `<div id="livehint">Live details resume when APCRDA is reachable; the plot outline above is from the saved snapshot.</div>`);
   card.style.display = "block";
 
   card.querySelector(".close").addEventListener("click", closeCard);
   card.querySelectorAll("[data-goto]").forEach((b) => b.addEventListener("click", () => openPlot(b.dataset.goto)));
+  const ownerBtn = card.querySelector("#ownerLink");
+  if (ownerBtn) ownerBtn.addEventListener("click", () => openOwner(ownerBtn.dataset.owner));
   $("actZoom").addEventListener("click", () => {
     if (geom) { try { map.fitBounds(geom.getBounds().pad(0.8), { maxZoom: 20 }); } catch (_) {} }
-    else if (state.live && rec.id) openPlot(rec.id);
+    else if (!highlightLocal(rec, true) && state.live && rec.id) openPlot(rec.id);
   });
+  $("actShare").addEventListener("click", () => copyShare($("actShare"), { plot: rec.code || rec.id }));
   $("actCopy").addEventListener("click", async () => {
     const text = rec.code || rec.reg || String(rec.no ?? "");
     try { await navigator.clipboard.writeText(text); } catch (_) {
@@ -531,10 +617,122 @@ function renderCard(rec, geom) {
   });
 }
 
+/* ---------------- owner view: all plots held by one allottee ---------------- */
+function ownerLineHtml(rec) {
+  const name = primaryOwner(rec);
+  if (!name) return "";
+  const n = ownerPlots(name).length;
+  if (n <= 1) return "";
+  return `<div class="ownerbar"><span>This owner holds <b>${n}</b> plots</span>` +
+    `<button type="button" id="ownerLink" data-owner="${esc(name)}">View all →</button></div>`;
+}
+
+function openOwner(name) {
+  const key = ownerKey(name);
+  const plots = ownerPlots(key);
+  if (!plots.length) return;
+  state.mode = "owner";
+  state.owner = key;
+  state.selectedCode = null;
+  if (window.matchMedia("(max-width: 880px)").matches) {
+    $("aside").classList.add("hidden");
+    $("regtoggle").textContent = "REGISTER";
+    setTimeout(() => map.invalidateSize(), 60);
+  }
+  updateURL({ owner: key });
+  renderTable();
+
+  // highlight every plot we can place offline; fit map to them
+  highlight.clearLayers();
+  const bounds = [];
+  let placed = 0;
+  for (const p of plots) {
+    const ll = plotLatLngs(p);
+    if (!ll) continue;
+    const poly = L.polygon(ll, HL_STYLE).addTo(highlight);
+    poly.on("click", () => openPlot(p.id));
+    bounds.push(poly.getBounds());
+    placed++;
+  }
+  if (bounds.length) {
+    let b = bounds[0];
+    for (let i = 1; i < bounds.length; i++) b = b.extend(bounds[i]);
+    try { map.fitBounds(b.pad(0.3), { maxZoom: 18 }); } catch (_) {}
+  }
+
+  const totalExt = plots.reduce((s, p) => s + (typeof p.ext === "number" ? p.ext : 0), 0);
+  const villages = [...new Set(plots.map((p) => p.village).filter((v) => v && v !== "—"))];
+  const rows = plots.map((p) =>
+    `<button type="button" class="ownerplot" data-code="${esc(p.id)}">` +
+      `<span class="dot" style="background:${zoneColor(p.sym)}"></span>` +
+      `<span class="op-code">${esc(p.code || p.reg || "#" + p.no)}</span>` +
+      `<span class="op-vil">${esc(p.village)}</span>` +
+      `<span class="op-ext">${p.ext != null ? inr(Math.round(p.ext)) : "—"}</span>` +
+    `</button>`).join("");
+
+  const card = $("card");
+  card.innerHTML =
+    `<button type="button" class="close" aria-label="Close">✕</button>` +
+    `<div class="eyebrow">ALLOTTEE</div>` +
+    `<h2 style="font-family:'IBM Plex Sans',sans-serif;font-size:18px;">${esc(name)}</h2>` +
+    `<div class="sect">` +
+      kv("Plots held", `<b>${plots.length}</b>`) +
+      (totalExt ? kv("Total extent (as recorded)", inr(Math.round(totalExt))) : "") +
+      kv("Villages", esc(villages.join(", ") || "—")) +
+      (placed < plots.length ? kv("Shown on map", `${placed} of ${plots.length}`) : "") +
+    `</div>` +
+    `<div class="sect">` +
+      `<div class="eyebrow">ALL PLOTS — TAP TO OPEN</div>` +
+      `<div class="ownerlist">${rows}</div>` +
+    `</div>` +
+    `<div class="actions">` +
+      `<button type="button" class="primary" id="ownerShare">Share this list</button>` +
+    `</div>`;
+  card.style.display = "block";
+  card.querySelector(".close").addEventListener("click", closeCard);
+  card.querySelectorAll(".ownerplot").forEach((b) => b.addEventListener("click", () => openPlot(b.dataset.code)));
+  $("ownerShare").addEventListener("click", () => copyShare($("ownerShare"), { owner: key }));
+}
+
+/* ---------------- share links ---------------- */
+function shareURL(params) {
+  const qs = new URLSearchParams(params).toString();
+  return location.origin + location.pathname + (qs ? "?" + qs : "");
+}
+function updateURL(params) {
+  try { history.replaceState(null, "", params ? "?" + new URLSearchParams(params).toString() : location.pathname); } catch (_) {}
+}
+async function copyShare(btn, params) {
+  const url = shareURL(params);
+  try { await navigator.clipboard.writeText(url); } catch (_) {
+    const ta = document.createElement("textarea");
+    ta.value = url; document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); } catch (_) {}
+    document.body.removeChild(ta);
+  }
+  const old = btn.textContent;
+  btn.textContent = "Link copied ✓";
+  setTimeout(() => { btn.textContent = old; }, 1500);
+}
+function applyDeepLink() {
+  const sp = new URLSearchParams(location.search);
+  const plot = sp.get("plot");
+  const owner = sp.get("owner");
+  if (plot) {
+    const rec = state.byCode.get(plot) || state.byCode.get(plot.toUpperCase());
+    if (rec) openPlot(rec.id);
+  } else if (owner) {
+    openOwner(owner);
+  }
+}
+
 function closeCard() {
   $("card").style.display = "none";
   state.selectedCode = null;
+  state.mode = "plot";
+  state.owner = null;
   highlight.clearLayers();
+  updateURL(null);
   renderTable();
 }
 

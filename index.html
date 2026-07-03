@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/esri-leaflet@3.0.12/dist/esri-leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.11.0/proj4.js"></script>
 
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
@@ -167,6 +168,21 @@
   .actions { display: flex; gap: 8px; margin-top: 14px; }
   .actions .primary { flex: 1; background: var(--ink); color: #F2EFE6; border: none; border-radius: 8px; padding: 8px 10px; font-size: 12px; font-weight: 600; }
   .actions .ghost { background: var(--white); color: var(--ink); border: 1px solid #C9C4B4; border-radius: 8px; padding: 8px 12px; font-size: 12px; font-weight: 600; }
+  .ownerbar {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    margin: 10px 0 2px; padding: 8px 11px; border-radius: 9px;
+    background: #EFF4FB; border: 1px solid #C6D6EC; font-size: 12px; color: #173A63;
+  }
+  .ownerbar button { background: #173A63; color: #fff; border: none; border-radius: 7px; padding: 5px 10px; font-size: 11.5px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .ownerlist { display: flex; flex-direction: column; max-height: 240px; overflow-y: auto; margin-top: 4px; }
+  .ownerplot {
+    display: flex; align-items: center; gap: 8px; width: 100%; text-align: left;
+    padding: 7px 6px; border: none; border-bottom: 1px solid #EFEDE2; background: transparent; cursor: pointer;
+  }
+  .ownerplot:hover { background: #F4F2E9; }
+  .ownerplot .op-code { font: 500 11px 'IBM Plex Mono', monospace; color: var(--ink-2); flex: none; }
+  .ownerplot .op-vil { flex: 1; min-width: 0; font-size: 11.5px; color: #4b463a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ownerplot .op-ext { font: 500 11px 'IBM Plex Mono', monospace; color: #4b463a; flex: none; }
   #livehint { margin-top: 10px; font-size: 10.5px; color: var(--faint); line-height: 1.4; }
 
   /* ---------- popup ---------- */
