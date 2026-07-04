@@ -42,11 +42,14 @@ const INDEX_FIELDS = [
   "ESRI_OID", // needed so plots with blank codes still get a stable id
 ];
 
-// Must match the app's id derivation exactly (app.js normalize()).
+// IDENTITY RULE — must match app.js normalize() exactly.
+// plot_code is untrustworthy (APCRDA sometimes stores zone labels in it, and
+// codes repeat across villages), so identity is the sector-qualified
+// registration code, with the server object id as the fallback.
+const looksLikeCode = (t) => /^[0-9A-Za-z\-\/]+$/.test(t) && t.includes("-") && /\d/.test(t);
 const deriveId = (a) => {
-  const c = (a.plot_code || "").trim();
   const r = (a.regcode || "").trim();
-  return c || r || (a.ESRI_OID != null ? "oid-" + a.ESRI_OID : "");
+  return looksLikeCode(r) ? r : (a.ESRI_OID != null ? "oid-" + a.ESRI_OID : "");
 };
 // Must match the app's villageSlug() exactly.
 const slug = (v) =>
@@ -227,6 +230,31 @@ async function main() {
         if (e > b[2]) b[2] = e; if (n > b[3]) b[3] = n;
       }
     }
+  }
+
+  // INTEGRITY GATE: an id may appear on several rows (APCRDA stores
+  // duplicates of the same plot) but must never span rows that disagree on
+  // what plot they are. If it ever does, publishing would corrupt the site
+  // and the permanent history — refuse instead.
+  {
+    const fingerprint = new Map(); // id -> "village|plot_no"
+    let conflicts = 0;
+    const examples = [];
+    for (const a of raw) {
+      const id = deriveId(a);
+      if (!id || id.startsWith("oid-")) continue; // oid ids are unique by construction
+      const fp = `${(a.lpsvillage || "").trim()}|${a.plot_no ?? ""}`;
+      const prev = fingerprint.get(id);
+      if (prev === undefined) fingerprint.set(id, fp);
+      else if (prev !== fp) { conflicts++; if (examples.length < 5) examples.push(id); }
+    }
+    if (conflicts) {
+      console.error(`Identity integrity FAILED: ${conflicts} id(s) span different plots, e.g. ${examples.join(", ")}`);
+      console.error("Refusing to publish a snapshot that would corrupt the register and history.");
+      process.exit(1);
+    }
+    const oidIds = raw.filter((a) => deriveId(a).startsWith("oid-")).length;
+    console.log(`Identity check passed — ${raw.length - oidIds} regcode ids, ${oidIds} oid-fallback ids, 0 conflicts.`);
   }
 
   await mkdir("data/geo", { recursive: true });
