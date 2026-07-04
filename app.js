@@ -144,6 +144,28 @@ function loadGeo(village) {
   state.geoLoads.set(s, pr);
   return pr;
 }
+// Centroid [lat, lng] of a plot's outline, for map links and directions.
+function plotCentroid(rec) {
+  const ll = plotLatLngs(rec);
+  if (!ll || !ll.length) return null;
+  let la = 0, lo = 0;
+  for (const [a, b] of ll) { la += a; lo += b; }
+  return [la / ll.length, lo / ll.length];
+}
+// Universal Google Maps links (work on Android, iPhone, and desktop).
+function mapsDirTo(lat, lng) {
+  return "https://www.google.com/maps/dir/?api=1&destination=" + lat.toFixed(6) + "," + lng.toFixed(6);
+}
+function mapsRoute(points) {
+  // ordered waypoints: origin -> ... -> destination, capped for URL limits
+  const CAP = 9; // Google Maps supports ~10 stops per URL
+  const pts = points.slice(0, CAP);
+  const dest = pts[pts.length - 1];
+  const url = "https://www.google.com/maps/dir/?api=1&destination=" + dest[0].toFixed(6) + "," + dest[1].toFixed(6);
+  const mids = pts.slice(0, -1).map((p) => p[0].toFixed(6) + "," + p[1].toFixed(6));
+  return mids.length ? url + "&waypoints=" + mids.join("|") : url;
+}
+
 // Convert a live feature's GeoJSON geometry to Leaflet latlngs (outer ring).
 function geojsonLatLngs(g) {
   if (!g) return null;
@@ -228,6 +250,12 @@ const I18N = {
     recentChanges: "Recent changes", feedTitle: "RECENT CHANGES — ALL PLOTS", feedEmpty: "No changes recorded yet. The nightly comparison will list ownership, zone and registration changes here, permanently.",
     swipeT: "Compare with satellite", swipeOffT: "Turn off compare",
     collapseT: "Hide list", expandT: "Show list", legendTitle: "Zone legend", legend: "Legend",
+    directions: "Directions", routeAll: "Route through all plots",
+    routeNeedTwo: "Need at least two locatable plots for a route.",
+    routeCapped: "Route for the first {n} of {m} plots (map app limit).",
+    noLocation: "This plot has no mapped location.",
+    measureT: "Measure distance", measureOffT: "Close measure", measureHint: "Tap points on the map to measure",
+    measureDist: "Distance", measureArea: "Area", measureClear: "Clear", measureDone: "Done",
     lyrTitle: "Map layers", lyrHint: "APCRDA reference layers \u00b7 tap to overlay", lyrLoadingOne: "loading\u2026", lyrFail: "couldn't load",
     areaEyebrow: "LAND-USE AREA — NOT A RETURNABLE PLOT", areaTitle: "Area", areaNote: "Zone coverage, roads, unallocated and institutional lands are viewable here but are not individual returnable plots, so they have no boundaries walk or change history.", zoomArea: "Zoom to this area",
     askBtn: "Ask AI", askPh: "Ask about plots, owners, villages\u2026", askSend: "Ask", askThinking: "Thinking\u2026",
@@ -277,6 +305,12 @@ const I18N = {
     recentChanges: "ఇటీవలి మార్పులు", feedTitle: "ఇటీవలి మార్పులు — అన్ని ప్లాట్లు", feedEmpty: "ఇంకా మార్పులు నమోదు కాలేదు. రాత్రి పోలిక ద్వారా యాజమాన్య, జోన్, రిజిస్ట్రేషన్ మార్పులు ఇక్కడ శాశ్వతంగా కనిపిస్తాయి.",
     swipeT: "\u0c36\u0c3e\u0c1f\u0c3f\u0c32\u0c48\u0c1f\u0c4d\u200c\u0c24\u0c4b \u0c2a\u0c4b\u0c32\u0c4d\u0c1a\u0c02\u0c21\u0c3f", swipeOffT: "\u0c2a\u0c4b\u0c32\u0c3f\u0c15 \u0c06\u0c2a\u0c02\u0c21\u0c3f",
     collapseT: "\u0c1c\u0c3e\u0c2c\u0c3f\u0c24\u0c3e \u0c26\u0c3e\u0c1a\u0c41", expandT: "\u0c1c\u0c3e\u0c2c\u0c3f\u0c24\u0c3e \u0c1a\u0c42\u0c2a\u0c41", legendTitle: "\u0c1c\u0c4b\u0c28\u0c4d \u0c32\u0c46\u0c1c\u0c46\u0c02\u0c21\u0c4d", legend: "\u0c32\u0c46\u0c1c\u0c46\u0c02\u0c21\u0c4d",
+    directions: "\u0c26\u0c3e\u0c30\u0c3f", routeAll: "\u0c05\u0c28\u0c4d\u0c28\u0c3f \u0c2a\u0c4d\u0c32\u0c3e\u0c1f\u0c4d\u0c32 \u0c2e\u0c3e\u0c30\u0c4d\u0c17\u0c02",
+    routeNeedTwo: "\u0c2e\u0c3e\u0c30\u0c4d\u0c17\u0c02 \u0c15\u0c4b\u0c38\u0c02 \u0c15\u0c28\u0c40\u0c38\u0c02 \u0c30\u0c46\u0c02\u0c21\u0c41 \u0c2a\u0c4d\u0c32\u0c3e\u0c1f\u0c4d\u0c32\u0c41 \u0c15\u0c3e\u0c35\u0c3e\u0c32\u0c3f.",
+    routeCapped: "{m}\u0c32\u0c4b \u0c2e\u0c4a\u0c26\u0c1f\u0c3f {n} \u0c2a\u0c4d\u0c32\u0c3e\u0c1f\u0c4d\u0c32\u0c15\u0c41 \u0c2e\u0c3e\u0c30\u0c4d\u0c17\u0c02.",
+    noLocation: "\u0c08 \u0c2a\u0c4d\u0c32\u0c3e\u0c1f\u0c4d\u200c\u0c15\u0c41 \u0c2e\u0c4d\u0c2f\u0c3e\u0c2a\u0c4d \u0c32\u0c4b\u0c15\u0c47\u0c37\u0c28\u0c4d \u0c32\u0c47\u0c26\u0c41.",
+    measureT: "\u0c26\u0c42\u0c30\u0c02 \u0c15\u0c4a\u0c32\u0c35\u0c02\u0c21\u0c3f", measureOffT: "\u0c2e\u0c42\u0c38\u0c3f\u0c35\u0c47\u0c2f\u0c3f", measureHint: "\u0c15\u0c4a\u0c32\u0c35\u0c21\u0c3e\u0c28\u0c3f\u0c15\u0c3f \u0c2e\u0c4d\u0c2f\u0c3e\u0c2a\u0c4d\u200c\u0c2a\u0c48 \u0c2a\u0c3e\u0c2f\u0c3f\u0c02\u0c1f\u0c4d\u0c32\u0c41 \u0c28\u0c4a\u0c15\u0c4d\u0c15\u0c02\u0c21\u0c3f",
+    measureDist: "\u0c26\u0c42\u0c30\u0c02", measureArea: "\u0c35\u0c3f\u0c38\u0c4d\u0c24\u0c40\u0c30\u0c4d\u0c23\u0c02", measureClear: "\u0c15\u0c4d\u0c32\u0c3f\u0c2f\u0c30\u0c4d", measureDone: "\u0c2a\u0c42\u0c30\u0c4d\u0c24\u0c2f\u0c3f\u0c02\u0c26\u0c3f",
     lyrTitle: "\u0c2e\u0c4d\u0c2f\u0c3e\u0c2a\u0c4d \u0c32\u0c47\u0c2f\u0c30\u0c4d\u0c32\u0c41", lyrHint: "APCRDA \u0c30\u0c3f\u0c2b\u0c30\u0c46\u0c28\u0c4d\u0c38\u0c4d \u0c32\u0c47\u0c2f\u0c30\u0c4d\u0c32\u0c41", lyrLoadingOne: "\u0c32\u0c4b\u0c21\u0c4d \u0c05\u0c35\u0c41\u0c24\u0c4b\u0c02\u0c26\u0c3f\u2026", lyrFail: "\u0c32\u0c4b\u0c21\u0c4d \u0c15\u0c3e\u0c32\u0c47\u0c26\u0c41",
     areaEyebrow: "\u0c2d\u0c42\u0c35\u0c3f\u0c28\u0c3f\u0c2f\u0c4b\u0c17 \u0c2a\u0c4d\u0c30\u0c3e\u0c02\u0c24\u0c02 \u2014 \u0c30\u0c3f\u0c1f\u0c30\u0c4d\u0c28\u0c2c\u0c41\u0c32\u0c4d \u0c2a\u0c4d\u0c32\u0c3e\u0c1f\u0c4d \u0c15\u0c3e\u0c26\u0c41", areaTitle: "\u0c2a\u0c4d\u0c30\u0c3e\u0c02\u0c24\u0c02", areaNote: "\u0c1c\u0c4b\u0c28\u0c4d \u0c15\u0c35\u0c30\u0c47\u0c1c\u0c4d, \u0c30\u0c4b\u0c21\u0c4d\u0c32\u0c41, \u0c15\u0c47\u0c1f\u0c3e\u0c2f\u0c3f\u0c02\u0c1a\u0c28\u0c3f \u0c2d\u0c42\u0c2e\u0c41\u0c32\u0c41 \u0c07\u0c15\u0c4d\u0c15\u0c21 \u0c1a\u0c42\u0c21\u0c35\u0c1a\u0c4d\u0c1a\u0c41, \u0c15\u0c3e\u0c28\u0c40 \u0c05\u0c35\u0c3f \u0c35\u0c4d\u0c2f\u0c15\u0c4d\u0c24\u0c3f\u0c17\u0c24 \u0c2a\u0c4d\u0c32\u0c3e\u0c1f\u0c4d\u0c32\u0c41 \u0c15\u0c3e\u0c35\u0c41.", zoomArea: "\u0c08 \u0c2a\u0c4d\u0c30\u0c3e\u0c02\u0c24\u0c3e\u0c28\u0c3f\u0c15\u0c3f \u0c1c\u0c42\u0c2e\u0c4d",
     askBtn: "AI \u0c28\u0c3f \u0c05\u0c21\u0c17\u0c02\u0c21\u0c3f", askPh: "\u0c2a\u0c4d\u0c32\u0c3e\u0c1f\u0c4d\u0c32\u0c41, \u0c2f\u0c1c\u0c2e\u0c3e\u0c28\u0c41\u0c32\u0c41, \u0c17\u0c4d\u0c30\u0c3e\u0c2e\u0c3e\u0c32 \u0c17\u0c41\u0c30\u0c3f\u0c02\u0c1a\u0c3f \u0c05\u0c21\u0c17\u0c02\u0c21\u0c3f\u2026", askSend: "\u0c05\u0c21\u0c17\u0c02\u0c21\u0c3f", askThinking: "\u0c06\u0c32\u0c4b\u0c1a\u0c3f\u0c38\u0c4d\u0c24\u0c4b\u0c02\u0c26\u0c3f\u2026",
@@ -990,6 +1024,7 @@ function renderCard(rec, geom) {
       `<button type="button" class="ghost" id="actCopy">${esc(t("copy"))}</button>` +
       `<button type="button" class="ghost star${isSaved(rec.id) ? " on" : ""}" id="actSave" title="${esc(isSaved(rec.id) ? t("savedT") : t("saveT"))}">${isSaved(rec.id) ? "★" : "☆"}</button>` +
     `</div>` +
+    `<div class="actions"><button type="button" class="ghost" id="actDir" style="flex:1">${esc(t("directions"))}</button></div>` +
     `<div class="actions"><button type="button" class="ghost" id="actPrint" style="flex:1">${esc(t("printRec"))}</button></div>` +
     (state.live ? "" : `<div id="livehint">${esc(t("livehint"))}</div>`);
   card.style.display = "block";
@@ -1003,6 +1038,12 @@ function renderCard(rec, geom) {
     else if (!highlightLocal(rec, true) && state.live && rec.id) openPlot(rec.id);
   });
   $("actShare").addEventListener("click", () => copyShare($("actShare"), { plot: rec.id }));
+  const dirBtn = $("actDir");
+  if (dirBtn) dirBtn.addEventListener("click", () => {
+    const c = plotCentroid(rec);
+    if (c) window.open(mapsDirTo(c[0], c[1]), "_blank", "noopener");
+    else toast(t("noLocation"));
+  });
   $("actSave").addEventListener("click", () => {
     toggleSaved(rec.id);
     const b = $("actSave");
@@ -1135,11 +1176,20 @@ function openOwner(name) {
     `</div>` +
     `<div class="actions">` +
       `<button type="button" class="primary" id="ownerShare">${esc(t("shareList"))}</button>` +
-    `</div>`;
+    `</div>` +
+    `<div class="actions"><button type="button" class="ghost" id="ownerRoute" style="flex:1">${esc(t("routeAll"))}</button></div>`;
   card.style.display = "block";
   card.querySelector(".close").addEventListener("click", closeCard);
   card.querySelectorAll(".ownerplot").forEach((b) => b.addEventListener("click", () => openPlot(b.dataset.code)));
   $("ownerShare").addEventListener("click", () => copyShare($("ownerShare"), { owner: key }));
+  const routeBtn = $("ownerRoute");
+  if (routeBtn) routeBtn.addEventListener("click", () => {
+    const cs = [];
+    for (const p of plots) { const c = plotCentroid(p); if (c) cs.push(c); if (cs.length >= 9) break; }
+    if (cs.length < 2) { toast(t("routeNeedTwo")); return; }
+    window.open(mapsRoute(cs), "_blank", "noopener");
+    if (plots.length > cs.length) toast(tf("routeCapped", { n: cs.length, m: plots.length }));
+  });
   }; // end drawAll
 
   if (missing.length && state.live) {
@@ -1433,6 +1483,76 @@ function openLayers() {
     });
   });
 }
+/* ---- measure tool: point-to-point distance + area ---- */
+const measure = { on: false, pts: [], line: null, markers: [], poly: null };
+function fmtDist(m) {
+  return m >= 1000 ? (m / 1000).toFixed(2) + " km" : Math.round(m) + " m";
+}
+function fmtArea(sqm) {
+  const sqyd = sqm * 1.19599;
+  if (sqyd < 12100) return Math.round(sqyd).toLocaleString("en-IN") + " sq yd"; // ~2.5 acres
+  return Math.round(sqyd).toLocaleString("en-IN") + " sq yd (" + (sqm / 4046.856).toFixed(2) + " ac)";
+}
+function measureRedraw() {
+  const pts = measure.pts;
+  if (measure.line) { map.removeLayer(measure.line); measure.line = null; }
+  if (measure.poly) { map.removeLayer(measure.poly); measure.poly = null; }
+  if (pts.length >= 2) measure.line = L.polyline(pts, { color: "#B5361F", weight: 3, dashArray: "6 4" }).addTo(map);
+  if (pts.length >= 3) measure.poly = L.polygon(pts, { color: "#B5361F", weight: 1, fillColor: "#B5361F", fillOpacity: 0.08, interactive: false }).addTo(map);
+  let dist = 0;
+  for (let i = 1; i < pts.length; i++) dist += map.distance(pts[i - 1], pts[i]);
+  let txt = "";
+  if (pts.length < 2) txt = t("measureHint");
+  else {
+    txt = t("measureDist") + ": " + fmtDist(dist);
+    if (pts.length >= 3) {
+      // shoelace area on projected metres via Leaflet's CRS
+      let a = 0;
+      const proj = pts.map((p) => map.options.crs.project(L.latLng(p)));
+      for (let i = 0; i < proj.length; i++) {
+        const j = (i + 1) % proj.length;
+        a += proj[i].x * proj[j].y - proj[j].x * proj[i].y;
+      }
+      txt += " · " + t("measureArea") + ": " + fmtArea(Math.abs(a) / 2);
+    }
+  }
+  $("measuretxt").textContent = txt;
+}
+function measureAdd(latlng) {
+  measure.pts.push([latlng.lat, latlng.lng]);
+  const m = L.circleMarker(latlng, { radius: 5, color: "#B5361F", fillColor: "#fff", fillOpacity: 1, weight: 2, pane: "markerPane" }).addTo(map);
+  measure.markers.push(m);
+  measureRedraw();
+}
+function measureClear() {
+  measure.pts = [];
+  measure.markers.forEach((m) => map.removeLayer(m)); measure.markers = [];
+  if (measure.line) { map.removeLayer(measure.line); measure.line = null; }
+  if (measure.poly) { map.removeLayer(measure.poly); measure.poly = null; }
+  measureRedraw();
+}
+function setMeasure(on) {
+  measure.on = on;
+  $("btnMeasure").classList.toggle("on", on);
+  $("btnMeasure").title = on ? t("measureOffT") : t("measureT");
+  $("measurebar").style.display = on ? "flex" : "none";
+  const c = map.getContainer();
+  c.style.cursor = on ? "crosshair" : "";
+  if (on) {
+    $("measureclear").textContent = t("measureClear");
+    $("measuredone").textContent = t("measureDone");
+    measureRedraw();
+  } else {
+    measureClear();
+  }
+}
+map.on("click", (e) => { if (measure.on) measureAdd(e.latlng); });
+$("btnMeasure").addEventListener("click", () => setMeasure(!measure.on));
+$("measureclear").addEventListener("click", measureClear);
+$("measuredone").addEventListener("click", () => setMeasure(false));
+L.DomEvent.disableClickPropagation($("btnMeasure"));
+L.DomEvent.disableClickPropagation($("measurebar"));
+
 /* ---- zone legend (built from the app's own ZONE_COLORS) ---- */
 const LEGEND_ROWS = [
   { fam: "Residential", en: "Residential", te: "\u0c28\u0c3f\u0c35\u0c3e\u0c38", zones: [
@@ -1670,6 +1790,7 @@ function applyLang() {
   $("btnSwipe").title = swipeOn ? t("swipeOffT") : t("swipeT");
   $("btnLayers").title = t("lyrTitle");
   $("btnLegend").title = t("legendTitle");
+  $("btnMeasure").title = measure.on ? t("measureOffT") : t("measureT");
   $("collapseBtn").title = document.body.classList.contains("collapsed") ? t("expandT") : t("collapseT");
   const wt = $("wtitle"); if (wt) { wt.textContent = t("welcomeTitle"); $("wbody").textContent = t("welcomeBody"); $("wgo").textContent = t("welcomeBtn"); }
   applyFilters();
@@ -1689,6 +1810,14 @@ if (langBtn) langBtn.addEventListener("click", () => {
 applyLang();
 
 /* lightweight error surfacing — enterprise sites never fail silently */
+function toast(msg) {
+  const d = document.createElement("div");
+  d.className = "toastmsg";
+  d.setAttribute("role", "status");
+  d.textContent = msg;
+  document.body.appendChild(d);
+  setTimeout(() => d.remove(), 3200);
+}
 let errShown = false;
 window.addEventListener("error", () => {
   if (errShown) return;
