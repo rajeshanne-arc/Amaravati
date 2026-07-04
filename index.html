@@ -210,6 +210,54 @@
   .hist s { color: #a15b4d; text-decoration-color: #c9998e; }
   .hist b { color: #1E6B33; }
   .hist.none { font-style: italic; color: #8a8474; border-bottom: none; }
+  #mapbtns { position: absolute; top: 84px; left: 12px; z-index: 1200; display: flex; flex-direction: column; gap: 8px; }
+  #mapbtns button {
+    width: 40px; height: 40px; border-radius: 10px; border: 1.5px solid #C9C4B4; background: var(--white);
+    font-size: 18px; cursor: pointer; box-shadow: 0 2px 8px rgba(23,17,12,.14); line-height: 1;
+  }
+  #mapbtns button:hover { background: #F4F2E9; }
+  #mapbtns button.on { background: #182420; border-color: #182420; }
+  #mybtn {
+    background: transparent; color: #E8E4D8; border: 1px solid #3a4a42; border-radius: 8px;
+    padding: 5px 10px; font: 600 11.5px 'IBM Plex Sans', sans-serif; cursor: pointer; white-space: nowrap;
+  }
+  #mybtn:hover { background: #22312B; }
+  #feedbtn {
+    margin: 6px 14px 0; padding: 0; border: none; background: none; color: #1D4E89;
+    font: 600 12px 'IBM Plex Sans', sans-serif; cursor: pointer; text-align: left;
+  }
+  #feedbtn:hover { text-decoration: underline; }
+  .zoneband { height: 6px; margin: -16px -16px 12px; border-radius: 12px 12px 0 0; }
+  .shapebox { float: right; width: 84px; height: 84px; margin: 2px 0 8px 10px; background: #F7F5EC; border: 1px solid #E4E1D3; border-radius: 10px; }
+  .actions .star.on { border-color: #B8860B; color: #B8860B; background: #FBF4DF; }
+  #welcome {
+    position: fixed; inset: 0; z-index: 4000; background: rgba(24,36,32,.72);
+    display: flex; align-items: center; justify-content: center; padding: 24px;
+  }
+  #welcome .wbox {
+    background: var(--white); border-radius: 16px; padding: 28px 26px; max-width: 380px; width: 100%;
+    box-shadow: 0 24px 64px rgba(0,0,0,.4); text-align: center;
+  }
+  #welcome .wmark { font: 800 11px 'Archivo', sans-serif; letter-spacing: .22em; color: #7d7768; }
+  #welcome h2 { font: 800 24px 'Archivo', sans-serif; margin: 12px 0 8px; color: var(--ink-2); }
+  #welcome p { font-size: 13.5px; line-height: 1.6; color: #4b463a; margin: 0 0 18px; }
+  #welcome button {
+    background: #182420; color: #F2EFE6; border: none; border-radius: 10px; width: 100%;
+    padding: 12px; font: 600 14px 'IBM Plex Sans', sans-serif; cursor: pointer;
+  }
+  @media print {
+    header, #aside, #regtoggle, #mapbtns, #suggest, #welcome, #errtoast,
+    .leaflet-pane, .leaflet-control-container, .leaflet-top, .leaflet-bottom { display: none !important; }
+    body { background: #fff; }
+    #map { position: static !important; height: auto !important; }
+    #card {
+      display: block !important; position: static !important; width: 100% !important;
+      max-width: none !important; max-height: none !important; overflow: visible !important;
+      box-shadow: none !important; border: 1px solid #999 !important;
+    }
+    #card .actions, #card .close { display: none !important; }
+    footer { position: static !important; }
+  }
   #errtoast {
     position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 3000;
     background: #7a3423; color: #fff; padding: 10px 16px; border-radius: 10px;
@@ -254,6 +302,7 @@
     <div class="sub" id="subtitle">Returnable plot register · unofficial viewer on APCRDA GIS</div>
   </div>
   <span id="status" class="wait" aria-live="polite">CONNECTING…</span>
+  <button id="mybtn" type="button" aria-label="My saved plots">&#9733; My plots</button>
   <button id="langbtn" type="button" aria-label="Switch language / భాష మార్చండి">తెలుగు</button>
   <div class="headsearch">
     <input id="q" placeholder="Plot code, number or allottee name…  ( / )" autocomplete="off" />
@@ -269,6 +318,7 @@
       </div>
       <div class="chips" id="fFamily"></div>
       <div id="stats" aria-live="polite">Loading register…</div>
+<button id="feedbtn" type="button" style="display:none"></button>
       <div id="notice"></div>
     </div>
     <div class="thead" id="thead"></div>
@@ -283,11 +333,23 @@
   </aside>
 
   <div id="map" aria-label="Map of Amaravati LPS plots">
+    <div id="mapbtns">
+      <button id="btnGps" type="button" title="Which plot am I standing on?" aria-label="Find the plot I am standing on">&#x1F4CD;</button>
+      <button id="btnSat" type="button" title="Satellite view" aria-label="Toggle satellite view">&#x1F6F0;</button>
+    </div>
     <button id="regtoggle" type="button">REGISTER</button>
     <div id="card" role="dialog" aria-label="Plot record"></div>
   </div>
 </main>
 
-<script src="app.js?v=8"></script>
+<div id="welcome" role="dialog" aria-modal="true" aria-labelledby="wtitle" style="display:none">
+  <div class="wbox">
+    <div class="wmark">AMARAVATI · LPS ATLAS</div>
+    <h2 id="wtitle">Find your plot</h2>
+    <p id="wbody">Search by your name, plot code or number — or tap the GPS button while standing on your land.</p>
+    <button id="wgo" type="button">Start searching</button>
+  </div>
+</div>
+<script src="app.js?v=10"></script>
 </body>
 </html>

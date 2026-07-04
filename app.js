@@ -174,6 +174,12 @@ const I18N = {
     livehint: "Live details resume when APCRDA is reachable; the plot outline above is from the saved snapshot.",
     snapshotLbl: "Snapshot", refreshed: "(refreshed nightly).",
     footer: 'Unofficial viewer. Not a land record — verify every plot at <a href="https://gis.apcrda.org/lps/index.html" target="_blank" rel="noopener">gis.apcrda.org/lps</a> · Plot data © APCRDA · Basemap © OpenStreetMap contributors · <a href="about.html">About & data policy</a>.',
+    welcomeTitle: "Find your plot", welcomeBody: "Search by your name, plot code or number — or tap the GPS button while standing on your land.", welcomeBtn: "Start searching",
+    satellite: "Satellite view", mapViewT: "Map view",
+    gpsTitle: "Which plot am I standing on?", gpsLocating: "Finding your location…", gpsNoFix: "Couldn't get your location — allow location access and try again.", gpsOutside: "You don't appear to be inside the LPS plotted area.", gpsNoPlot: "You're inside the LPS area, but not on a recorded plot.", gpsNeedData: "GPS lookup needs the latest data — run the Update LPS snapshot action once.",
+    myPlots: "My plots", myPlotsEmpty: "No saved plots yet — open a plot and tap ☆ to save it.", saveT: "Save this plot", savedT: "Saved — tap to remove",
+    printRec: "Print record",
+    recentChanges: "Recent changes", feedTitle: "RECENT CHANGES — ALL PLOTS", feedEmpty: "No changes recorded yet. The nightly comparison will list ownership, zone and registration changes here, permanently.",
     errToast: "Something went wrong — please refresh the page.",
   },
   te: {
@@ -209,6 +215,12 @@ const I18N = {
     livehint: "APCRDA అందుబాటులోకి వచ్చాక తాజా వివరాలు వస్తాయి; పై అవుట్‌లైన్ సేవ్ చేసిన స్నాప్‌షాట్ నుండి.",
     snapshotLbl: "స్నాప్‌షాట్", refreshed: "(ప్రతి రాత్రి రిఫ్రెష్).",
     footer: 'అనధికారిక వ్యూయర్. ఇది భూమి రికార్డు కాదు — ప్రతి ప్లాట్‌ను <a href="https://gis.apcrda.org/lps/index.html" target="_blank" rel="noopener">gis.apcrda.org/lps</a> లో ధృవీకరించండి · డేటా © APCRDA · బేస్‌మ్యాప్ © OpenStreetMap · <a href="about.html">వివరాలు & డేటా విధానం</a>.',
+    welcomeTitle: "మీ ప్లాట్ కనుగొనండి", welcomeBody: "మీ పేరు, ప్లాట్ కోడ్ లేదా నంబర్‌తో వెతకండి — లేదా మీ భూమిపై నిలబడి GPS బటన్ నొక్కండి.", welcomeBtn: "వెతకడం ప్రారంభించండి",
+    satellite: "శాటిలైట్ వ్యూ", mapViewT: "మ్యాప్ వ్యూ",
+    gpsTitle: "నేను ఏ ప్లాట్‌పై నిలబడి ఉన్నాను?", gpsLocating: "మీ స్థానం కనుగొంటోంది…", gpsNoFix: "స్థానం లభించలేదు — లొకేషన్ అనుమతి ఇచ్చి మళ్లీ ప్రయత్నించండి.", gpsOutside: "మీరు LPS ప్లాట్ ప్రాంతంలో లేనట్లు కనిపిస్తోంది.", gpsNoPlot: "మీరు LPS ప్రాంతంలో ఉన్నారు, కానీ నమోదైన ప్లాట్‌పై లేరు.", gpsNeedData: "GPS శోధనకు తాజా డేటా అవసరం — Update LPS snapshot ఒకసారి రన్ చేయండి.",
+    myPlots: "నా ప్లాట్లు", myPlotsEmpty: "సేవ్ చేసిన ప్లాట్లు లేవు — ప్లాట్ తెరిచి ☆ నొక్కండి.", saveT: "ఈ ప్లాట్ సేవ్ చేయండి", savedT: "సేవ్ అయింది — తీసేయడానికి నొక్కండి",
+    printRec: "రికార్డు ప్రింట్",
+    recentChanges: "ఇటీవలి మార్పులు", feedTitle: "ఇటీవలి మార్పులు — అన్ని ప్లాట్లు", feedEmpty: "ఇంకా మార్పులు నమోదు కాలేదు. రాత్రి పోలిక ద్వారా యాజమాన్య, జోన్, రిజిస్ట్రేషన్ మార్పులు ఇక్కడ శాశ్వతంగా కనిపిస్తాయి.",
     errToast: "ఏదో తప్పు జరిగింది — దయచేసి పేజీని రిఫ్రెష్ చేయండి.",
   },
 };
@@ -224,7 +236,7 @@ const state = {
   byReg: new Map(),     // regcode -> record (for boundary walking)
   byOwner: new Map(),   // normalized allottee name -> [records]
   filtered: [],
-  filters: { q: "", village: "__ALL__", family: "All" },
+  filters: { q: "", village: "__ALL__", family: "All", minExt: null },
   sort: { key: "no", dir: 1 },
   live: false,
   snapshotDate: null,
@@ -300,7 +312,11 @@ function normalize(a) {
 }
 
 function ingest(list, generated) {
-  const all = list.map(normalize).filter((p) => p.id);
+  const all = list.map(normalize).filter((p) => p.id)
+    // zone-coverage records (village planning areas, reserves, roads — blank
+    // code, plot number 0 or below) aren't plots; keep them out of the
+    // register, stats, search and owner index entirely
+    .filter((p) => p.code || (p.reg && Number(p.no) > 0));
   // APCRDA's layer stores some plots as several identical overlapping records.
   // Collapse rows that match on everything the user sees, so each real plot
   // appears once. Rows sharing a code but differing (e.g. different allottee)
@@ -333,6 +349,7 @@ function ingest(list, generated) {
   state.snapshotDate = generated || null;
   state.snapVersion = generated || "";
   $("snapinfo").textContent = generated ? " " + t("snapshotLbl") + ": " + generated.slice(0, 10) + " " + t("refreshed") : "";
+  state.villageNames = [...new Set(state.plots.map((p) => p.village).filter((v) => v && v !== "\u2014"))];
   buildVillageSelect();
   applyFilters();
   statusLine();
@@ -345,6 +362,7 @@ fetch(CONFIG.SNAPSHOT)
   .then((r) => { if (!r.ok) throw new Error("no snapshot"); return r.json(); })
   .then((j) => {
     if (!j.plots || !j.plots.length) throw new Error("empty snapshot");
+    state.villageBounds = j.villageBounds || null;
     ingest(j.plots, j.generated);
     loadChanges();
   })
@@ -388,11 +406,12 @@ function buildVillageSelect() {
 }
 
 function applyFilters() {
-  const { q, village, family } = state.filters;
+  const { q, village, family, minExt } = state.filters;
   const ql = q.trim().toLowerCase();
   state.filtered = state.plots.filter((p) => {
     if (village !== "__ALL__" && p.village !== village) return false;
     if (family !== "All" && zoneFamily(p.sym) !== family) return false;
+    if (minExt != null && !(typeof p.ext === "number" && p.ext >= minExt)) return false;
     if (ql) {
       const hay = (p.id + " " + p.code + " " + (p.no ?? "") + " " + p.village + " " + p.sym + " " + p.reg + " " + (p.farmer || "")).toLowerCase();
       if (!hay.includes(ql)) return false;
@@ -544,11 +563,50 @@ function renderLocalSuggest() {
   if (b) b.addEventListener("mousedown", (e) => { e.preventDefault(); liveSearch(ql); });
 }
 
+/* smart search: turn natural phrasing into filters — the honest, free
+   cousin of a RAG chatbot for structured records */
+const ZONE_WORDS = {
+  residential: "Residential", "\u0c28\u0c3f\u0c35\u0c3e\u0c38": "Residential",
+  commercial: "Commercial", "\u0c35\u0c3e\u0c23\u0c3f\u0c1c\u0c4d\u0c2f": "Commercial",
+  industry: "Industry", industrial: "Industry",
+  park: "Parks", parks: "Parks",
+  government: "Institutional", school: "Institutional", education: "Institutional",
+  reserve: "Reserve",
+};
+function smartParse(raw) {
+  let rest = " " + raw.toLowerCase() + " ";
+  const out = { village: null, family: null, minExt: null };
+  // village names from the loaded data
+  for (const v of state.villageNames || []) {
+    const needle = " " + v.toLowerCase() + " ";
+    if (rest.includes(needle)) { out.village = v; rest = rest.replace(needle, " "); break; }
+  }
+  for (const w in ZONE_WORDS) {
+    if (rest.includes(" " + w)) { out.family = ZONE_WORDS[w]; rest = rest.replace(w, " "); break; }
+  }
+  const m = rest.match(/(?:above|over|more than|>|\u0c15\u0c02\u0c1f\u0c47 \u0c0e\u0c15\u0c4d\u0c15\u0c41\u0c35)\s*(\d+)/);
+  if (m) { out.minExt = parseInt(m[1], 10); rest = rest.replace(m[0], " "); }
+  out.rest = rest.replace(/\b(in|plots?|of|the)\b/g, " ").replace(/\s+/g, " ").trim();
+  out.structured = !!(out.village || out.family || out.minExt != null);
+  return out;
+}
+
 let srvTimer = null;
 let searchSeq = 0;
 
 qInput.addEventListener("input", () => {
-  state.filters.q = qInput.value;
+  const sp = smartParse(qInput.value);
+  if (sp.structured) {
+    state.filters.village = sp.village || "__ALL__";
+    state.filters.family = sp.family || "All";
+    state.filters.minExt = sp.minExt;
+    state.filters.q = sp.rest;
+    $("fVillage").value = state.filters.village;
+    buildChips(); // repaint active family chip
+  } else {
+    state.filters.minExt = null;
+    state.filters.q = qInput.value;
+  }
   applyFilters();
   renderLocalSuggest();
   // Auto-search the server for names: fires after a short pause when the
@@ -714,7 +772,9 @@ function loadChanges() {
         if (!a) { a = []; m.set(c.id, a); }
         a.push(c);
       }
-      state.changes = { map: m, since: (j.since || "").slice(0, 10) };
+      state.changes = { map: m, since: (j.since || "").slice(0, 10), raw: j.changes };
+      const fb = $("feedbtn");
+      if (fb) { fb.style.display = "inline-block"; fb.textContent = t("recentChanges") + " (" + j.changes.length + ") \u2192"; }
       // refresh an open plot card so its history appears
       if (state.mode === "plot" && state.selectedCode) {
         const r = state.byCode.get(state.selectedCode);
@@ -736,13 +796,27 @@ function historyHtml(rec) {
     `</div>`;
 }
 
+function plotShapeSvg(rec) {
+  const src = rec.coord || state.geoCache.get(rec.id) || "";
+  const pts = parsePlotCoord(src);
+  if (!pts || pts.length < 3) return "";
+  let minE = Infinity, maxE = -Infinity, minN = Infinity, maxN = -Infinity;
+  for (const [e, n] of pts) { if (e < minE) minE = e; if (e > maxE) maxE = e; if (n < minN) minN = n; if (n > maxN) maxN = n; }
+  const w = maxE - minE || 1, h = maxN - minN || 1, S = 84, k = (S - 8) / Math.max(w, h);
+  const ox = (S - w * k) / 2, oy = (S - h * k) / 2;
+  const poly = pts.map(([e, n]) => (ox + (e - minE) * k).toFixed(1) + "," + (oy + (maxN - n) * k).toFixed(1)).join(" ");
+  return `<svg class="shapebox" viewBox="0 0 ${S} ${S}" aria-hidden="true"><polygon points="${poly}" fill="${zoneColor(rec.sym)}" stroke="#182420" stroke-width="1.5"/></svg>`;
+}
+
 function renderCard(rec, geom) {
   const card = $("card");
   if (!rec) { card.style.display = "none"; return; }
   const nb = rec.nb && (rec.nb.N || rec.nb.S || rec.nb.E || rec.nb.W) ? rec.nb : (rec.nbFromSnap || rec.nb || {});
   const zc = zoneColor(rec.sym);
   card.innerHTML =
+    `<div class="zoneband" style="background:${zc}"></div>` +
     `<button type="button" class="close" aria-label="Close">✕</button>` +
+    plotShapeSvg(rec) +
     `<div class="eyebrow">${esc(t("returnable"))}</div>` +
     `<h2>${esc(rec.code || rec.reg || "#" + rec.no)}</h2>` +
     (rec.sym ? `<span class="zonechip" style="background:${zc}">${esc(rec.sym)}</span>` : "") +
@@ -771,7 +845,9 @@ function renderCard(rec, geom) {
       `<button type="button" class="primary" id="actZoom">${esc(t("zoom"))}</button>` +
       `<button type="button" class="ghost" id="actShare">${esc(t("share"))}</button>` +
       `<button type="button" class="ghost" id="actCopy">${esc(t("copy"))}</button>` +
+      `<button type="button" class="ghost star${isSaved(rec.id) ? " on" : ""}" id="actSave" title="${esc(isSaved(rec.id) ? t("savedT") : t("saveT"))}">${isSaved(rec.id) ? "★" : "☆"}</button>` +
     `</div>` +
+    `<div class="actions"><button type="button" class="ghost" id="actPrint" style="flex:1">${esc(t("printRec"))}</button></div>` +
     (state.live ? "" : `<div id="livehint">${esc(t("livehint"))}</div>`);
   card.style.display = "block";
 
@@ -784,6 +860,14 @@ function renderCard(rec, geom) {
     else if (!highlightLocal(rec, true) && state.live && rec.id) openPlot(rec.id);
   });
   $("actShare").addEventListener("click", () => copyShare($("actShare"), { plot: rec.code || rec.id }));
+  $("actSave").addEventListener("click", () => {
+    toggleSaved(rec.id);
+    const b = $("actSave");
+    b.textContent = isSaved(rec.id) ? "★" : "☆";
+    b.title = isSaved(rec.id) ? t("savedT") : t("saveT");
+    b.classList.toggle("on", isSaved(rec.id));
+  });
+  $("actPrint").addEventListener("click", () => window.print());
   $("actCopy").addEventListener("click", async () => {
     const text = rec.code || rec.reg || String(rec.no ?? "");
     try { await navigator.clipboard.writeText(text); } catch (_) {
@@ -972,6 +1056,129 @@ map.on("click", (e) => {
     });
 });
 
+/* ---------------- GPS: which plot am I standing on? ---------------- */
+const gpsLayer = L.layerGroup().addTo(map);
+function pip(x, y, pts) { // ray-cast point-in-polygon in UTM metres
+  let inside = false;
+  for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+    const xi = pts[i][0], yi = pts[i][1], xj = pts[j][0], yj = pts[j][1];
+    if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+function gpsNote(msg) {
+  const n = $("notice");
+  n.style.display = "block";
+  n.textContent = msg;
+  setTimeout(() => { if (n.textContent === msg) n.style.display = "none"; }, 7000);
+}
+function locateMe() {
+  if (!navigator.geolocation || !ensureProj()) { gpsNote(t("gpsNoFix")); return; }
+  setStatus("wait", t("gpsLocating").toUpperCase());
+  navigator.geolocation.getCurrentPosition((pos) => {
+    statusLine();
+    const lat = pos.coords.latitude, lon = pos.coords.longitude;
+    gpsLayer.clearLayers();
+    L.circleMarker([lat, lon], { radius: 7, color: "#fff", weight: 2, fillColor: "#1D4E89", fillOpacity: 1 }).addTo(gpsLayer);
+    let E, N;
+    try { [E, N] = proj4("WGS84", "APCRDA_UTM", [lon, lat]); } catch (_) { gpsNote(t("gpsNoFix")); return; }
+    const vb = state.villageBounds;
+    if (!vb) { gpsNote(t("gpsNeedData")); map.setView([lat, lon], 16); return; }
+    const PAD = 250; // metres of slack around village bounds
+    const cands = Object.keys(vb).filter((sl) => {
+      const b = vb[sl];
+      return E >= b[0] - PAD && E <= b[2] + PAD && N >= b[1] - PAD && N <= b[3] + PAD;
+    });
+    if (!cands.length) { gpsNote(t("gpsOutside")); map.setView([lat, lon], 15); return; }
+    const candSet = new Set(cands);
+    const villagesToLoad = (state.villageNames || []).filter((v) => candSet.has(villageSlug(v)));
+    Promise.all(villagesToLoad.map(loadGeo)).then(() => {
+      for (const p of state.plots) {
+        if (!candSet.has(villageSlug(p.village))) continue;
+        const src = p.coord || state.geoCache.get(p.id);
+        if (!src) continue;
+        const pts = parsePlotCoord(src);
+        if (!pts || pts.length < 3) continue;
+        // cheap bbox reject before the exact test
+        let inBox = false, minE = Infinity, maxE = -Infinity, minN = Infinity, maxN = -Infinity;
+        for (const [e, n] of pts) { if (e < minE) minE = e; if (e > maxE) maxE = e; if (n < minN) minN = n; if (n > maxN) maxN = n; }
+        inBox = E >= minE && E <= maxE && N >= minN && N <= maxN;
+        if (inBox && pip(E, N, pts)) { openPlot(p.id); return; }
+      }
+      gpsNote(t("gpsNoPlot"));
+      map.setView([lat, lon], 17);
+    });
+  }, () => { statusLine(); gpsNote(t("gpsNoFix")); }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 });
+}
+$("btnGps").addEventListener("click", locateMe);
+L.DomEvent.disableClickPropagation($("btnGps"));
+
+/* ---------------- satellite / map basemap toggle ---------------- */
+const baseSat = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
+  maxZoom: 19, attribution: "Imagery \u00a9 Esri & partners",
+});
+let satOn = false;
+$("btnSat").addEventListener("click", () => {
+  satOn = !satOn;
+  if (satOn) { map.addLayer(baseSat); } else { map.removeLayer(baseSat); }
+  $("btnSat").classList.toggle("on", satOn);
+  $("btnSat").title = satOn ? t("mapViewT") : t("satellite");
+});
+L.DomEvent.disableClickPropagation($("btnSat"));
+
+/* ---------------- bookmarks: my plots ---------------- */
+function getSaved() { try { return JSON.parse(localStorage.getItem("lps-saved") || "[]"); } catch (_) { return []; } }
+function setSaved(a) { try { localStorage.setItem("lps-saved", JSON.stringify(a)); } catch (_) {} paintMyCount(); }
+function isSaved(id) { return getSaved().includes(id); }
+function toggleSaved(id) { const a = getSaved(); const i = a.indexOf(id); if (i >= 0) a.splice(i, 1); else a.push(id); setSaved(a); }
+function paintMyCount() {
+  const n = getSaved().length;
+  $("mybtn").textContent = "\u2605 " + t("myPlots") + (n ? " (" + n + ")" : "");
+}
+$("mybtn").addEventListener("click", () => {
+  const saved = getSaved().map((id) => state.byCode.get(id)).filter(Boolean);
+  suggest.innerHTML = saved.length
+    ? saved.map((p) => suggestRow(p, p.farmer || "")).join("")
+    : `<div class="s-note">${esc(t("myPlotsEmpty"))}</div>`;
+  suggest.style.display = suggest.style.display === "block" ? "none" : "block";
+});
+
+/* ---------------- recent changes feed ---------------- */
+function openFeed() {
+  if (!state.changes) return;
+  state.mode = "feed"; state.selectedCode = null; state.owner = null;
+  highlight.clearLayers();
+  const entries = (state.changes.raw || []).slice().reverse().slice(0, 80);
+  const rows = entries.map((c) =>
+    `<button type="button" class="ownerplot" data-code="${esc(c.id)}">` +
+      `<span class="hd" style="font:600 10px 'IBM Plex Mono',monospace;color:#7d7768;">${esc(c.d)}</span>` +
+      `<span class="op-vil">${esc(t(HIST_LABEL_KEYS[c.f] || c.f))}: <s>${esc(c.from || "\u2014")}</s> \u2192 <b>${esc(c.to || "\u2014")}</b></span>` +
+      `<span class="op-code">${esc(c.id)}</span>` +
+    `</button>`).join("");
+  const card = $("card");
+  card.innerHTML =
+    `<button type="button" class="close" aria-label="Close">\u2715</button>` +
+    `<div class="eyebrow">${esc(t("feedTitle"))}</div>` +
+    `<div class="ownerlist" style="max-height:60vh;margin-top:10px;">${rows || `<div class="s-note">${esc(t("feedEmpty"))}</div>`}</div>`;
+  card.style.display = "block";
+  card.querySelector(".close").addEventListener("click", closeCard);
+  card.querySelectorAll(".ownerplot").forEach((b) => b.addEventListener("click", () => openPlot(b.dataset.code)));
+}
+$("feedbtn").addEventListener("click", openFeed);
+
+/* ---------------- welcome overlay (first visit) ---------------- */
+(function welcome() {
+  let seen = false;
+  try { seen = localStorage.getItem("lps-welcomed") === "1"; } catch (_) {}
+  if (seen) { $("welcome").remove(); return; }
+  $("welcome").style.display = "flex";
+  $("wgo").addEventListener("click", () => {
+    try { localStorage.setItem("lps-welcomed", "1"); } catch (_) {}
+    $("welcome").remove();
+    qInput.focus();
+  });
+})();
+
 /* ---------------- mobile register toggle ---------------- */
 $("regtoggle").addEventListener("click", () => {
   const a = $("aside");
@@ -1003,6 +1210,11 @@ function applyLang() {
   buildChips();
   buildHead();
   buildVillageSelect();
+  paintMyCount();
+  if (state.changes) { $("feedbtn").textContent = t("recentChanges") + " (" + (state.changes.raw || []).length + ") →"; }
+  $("btnGps").title = t("gpsTitle");
+  $("btnSat").title = t("satellite");
+  const wt = $("wtitle"); if (wt) { wt.textContent = t("welcomeTitle"); $("wbody").textContent = t("welcomeBody"); $("wgo").textContent = t("welcomeBtn"); }
   applyFilters();
   // re-render whatever's open so its labels switch too
   if (state.mode === "owner" && state.owner) openOwner(state.owner);
