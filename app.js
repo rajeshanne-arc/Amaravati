@@ -1041,8 +1041,24 @@ function renderCard(rec, geom) {
   const dirBtn = $("actDir");
   if (dirBtn) dirBtn.addEventListener("click", () => {
     const c = plotCentroid(rec);
-    if (c) window.open(mapsDirTo(c[0], c[1]), "_blank", "noopener");
-    else toast(t("noLocation"));
+    if (c) { window.open(mapsDirTo(c[0], c[1]), "_blank", "noopener"); return; }
+    // geometry not offline (shards disabled) — resolve live, then open Maps
+    if (geom && geom.getBounds) {
+      const ctr = geom.getBounds().getCenter();
+      window.open(mapsDirTo(ctr.lat, ctr.lng), "_blank", "noopener"); return;
+    }
+    if (state.live && rec.oid != null) {
+      dirBtn.disabled = true;
+      L.esri.query(esriOpts({ url: CONFIG.SERVICE + "/" + CONFIG.PLOT_LAYER }))
+        .where("ESRI_OID = " + Number(rec.oid)).returnGeometry(true).limit(1)
+        .run((err, fc) => {
+          dirBtn.disabled = false;
+          const ll = (!err && fc && fc.features[0]) ? geojsonLatLngs(fc.features[0].geometry) : null;
+          if (!ll) { toast(t("noLocation")); return; }
+          let la = 0, lo = 0; for (const [a, b] of ll) { la += a; lo += b; }
+          window.open(mapsDirTo(la / ll.length, lo / ll.length), "_blank", "noopener");
+        });
+    } else toast(t("noLocation"));
   });
   $("actSave").addEventListener("click", () => {
     toggleSaved(rec.id);
@@ -1184,11 +1200,16 @@ function openOwner(name) {
   $("ownerShare").addEventListener("click", () => copyShare($("ownerShare"), { owner: key }));
   const routeBtn = $("ownerRoute");
   if (routeBtn) routeBtn.addEventListener("click", () => {
-    const cs = [];
-    for (const p of plots) { const c = plotCentroid(p); if (c) cs.push(c); if (cs.length >= 9) break; }
+    // use the SAME centroids the numbered pins were drawn from (these are
+    // resolved live when offline geometry is absent), in list order
+    const cs = placedPlots
+      .slice().sort((a, b) => a.n - b.n)
+      .map((x) => x.center)
+      .filter(Boolean)
+      .slice(0, 9);
     if (cs.length < 2) { toast(t("routeNeedTwo")); return; }
     window.open(mapsRoute(cs), "_blank", "noopener");
-    if (plots.length > cs.length) toast(tf("routeCapped", { n: cs.length, m: plots.length }));
+    if (placedPlots.length > cs.length) toast(tf("routeCapped", { n: cs.length, m: placedPlots.length }));
   });
   }; // end drawAll
 
