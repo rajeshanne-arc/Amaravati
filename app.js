@@ -17,6 +17,9 @@ const CONFIG = {
   UTM_PROJ: "+proj=utm +zone=44 +datum=WGS84 +units=m +no_defs",
   LAT_RANGE: [15.5, 17.5],
   LNG_RANGE: [79.0, 82.0],
+  // RAG assistant endpoint (Cloudflare Worker from worker/rag-assistant.js).
+  // Leave "" until the worker is deployed; the Ask button then explains how.
+  ASK_ENDPOINT: "",
 };
 
 /* ---------------- zoning palette (official RGB, keyed by code prefix) ---- */
@@ -127,6 +130,7 @@ function villageSlug(v) {
 }
 // Fetch a village's geometry shard once; concurrent callers share the promise.
 function loadGeo(village) {
+  if (!state.geoOk) return Promise.resolve(false); // schema mismatch — live fallbacks handle geometry
   const s = villageSlug(village);
   if (state.geoLoads.has(s)) return state.geoLoads.get(s);
   const pr = fetch("data/geo/" + s + ".json" + (state.snapVersion ? "?v=" + encodeURIComponent(state.snapVersion) : ""))
@@ -140,6 +144,16 @@ function loadGeo(village) {
   state.geoLoads.set(s, pr);
   return pr;
 }
+// Convert a live feature's GeoJSON geometry to Leaflet latlngs (outer ring).
+function geojsonLatLngs(g) {
+  if (!g) return null;
+  let ring = null;
+  if (g.type === "Polygon") ring = g.coordinates && g.coordinates[0];
+  else if (g.type === "MultiPolygon") ring = g.coordinates && g.coordinates[0] && g.coordinates[0][0];
+  if (!ring || ring.length < 3) return null;
+  return ring.map((c) => [c[1], c[0]]);
+}
+
 function highlightLocal(rec, fit) {
   const ll = plotLatLngs(rec);
   if (!ll) return false;
@@ -212,6 +226,11 @@ const I18N = {
     myPlots: "My plots", myPlotsEmpty: "No saved plots yet — open a plot and tap ☆ to save it.", saveT: "Save this plot", savedT: "Saved — tap to remove",
     printRec: "Print record",
     recentChanges: "Recent changes", feedTitle: "RECENT CHANGES — ALL PLOTS", feedEmpty: "No changes recorded yet. The nightly comparison will list ownership, zone and registration changes here, permanently.",
+    areaEyebrow: "LAND-USE AREA — NOT A RETURNABLE PLOT", areaTitle: "Area", areaNote: "Zone coverage, roads, unallocated and institutional lands are viewable here but are not individual returnable plots, so they have no boundaries walk or change history.", zoomArea: "Zoom to this area",
+    askBtn: "Ask AI", askPh: "Ask about plots, owners, villages\u2026", askSend: "Ask", askThinking: "Thinking\u2026",
+    askOffline: "The AI assistant isn't set up yet. Deploy worker/rag-assistant.js to Cloudflare (instructions inside the file) and set CONFIG.ASK_ENDPOINT in app.js.",
+    askFail: "The assistant couldn't answer just now \u2014 try again.",
+    askHint: "Answers come only from this site's data. Not legal advice \u2014 verify at gis.apcrda.org/lps.",
     errToast: "Something went wrong — please refresh the page.",
   },
   te: {
@@ -253,6 +272,11 @@ const I18N = {
     myPlots: "నా ప్లాట్లు", myPlotsEmpty: "సేవ్ చేసిన ప్లాట్లు లేవు — ప్లాట్ తెరిచి ☆ నొక్కండి.", saveT: "ఈ ప్లాట్ సేవ్ చేయండి", savedT: "సేవ్ అయింది — తీసేయడానికి నొక్కండి",
     printRec: "రికార్డు ప్రింట్",
     recentChanges: "ఇటీవలి మార్పులు", feedTitle: "ఇటీవలి మార్పులు — అన్ని ప్లాట్లు", feedEmpty: "ఇంకా మార్పులు నమోదు కాలేదు. రాత్రి పోలిక ద్వారా యాజమాన్య, జోన్, రిజిస్ట్రేషన్ మార్పులు ఇక్కడ శాశ్వతంగా కనిపిస్తాయి.",
+    areaEyebrow: "\u0c2d\u0c42\u0c35\u0c3f\u0c28\u0c3f\u0c2f\u0c4b\u0c17 \u0c2a\u0c4d\u0c30\u0c3e\u0c02\u0c24\u0c02 \u2014 \u0c30\u0c3f\u0c1f\u0c30\u0c4d\u0c28\u0c2c\u0c41\u0c32\u0c4d \u0c2a\u0c4d\u0c32\u0c3e\u0c1f\u0c4d \u0c15\u0c3e\u0c26\u0c41", areaTitle: "\u0c2a\u0c4d\u0c30\u0c3e\u0c02\u0c24\u0c02", areaNote: "\u0c1c\u0c4b\u0c28\u0c4d \u0c15\u0c35\u0c30\u0c47\u0c1c\u0c4d, \u0c30\u0c4b\u0c21\u0c4d\u0c32\u0c41, \u0c15\u0c47\u0c1f\u0c3e\u0c2f\u0c3f\u0c02\u0c1a\u0c28\u0c3f \u0c2d\u0c42\u0c2e\u0c41\u0c32\u0c41 \u0c07\u0c15\u0c4d\u0c15\u0c21 \u0c1a\u0c42\u0c21\u0c35\u0c1a\u0c4d\u0c1a\u0c41, \u0c15\u0c3e\u0c28\u0c40 \u0c05\u0c35\u0c3f \u0c35\u0c4d\u0c2f\u0c15\u0c4d\u0c24\u0c3f\u0c17\u0c24 \u0c2a\u0c4d\u0c32\u0c3e\u0c1f\u0c4d\u0c32\u0c41 \u0c15\u0c3e\u0c35\u0c41.", zoomArea: "\u0c08 \u0c2a\u0c4d\u0c30\u0c3e\u0c02\u0c24\u0c3e\u0c28\u0c3f\u0c15\u0c3f \u0c1c\u0c42\u0c2e\u0c4d",
+    askBtn: "AI \u0c28\u0c3f \u0c05\u0c21\u0c17\u0c02\u0c21\u0c3f", askPh: "\u0c2a\u0c4d\u0c32\u0c3e\u0c1f\u0c4d\u0c32\u0c41, \u0c2f\u0c1c\u0c2e\u0c3e\u0c28\u0c41\u0c32\u0c41, \u0c17\u0c4d\u0c30\u0c3e\u0c2e\u0c3e\u0c32 \u0c17\u0c41\u0c30\u0c3f\u0c02\u0c1a\u0c3f \u0c05\u0c21\u0c17\u0c02\u0c21\u0c3f\u2026", askSend: "\u0c05\u0c21\u0c17\u0c02\u0c21\u0c3f", askThinking: "\u0c06\u0c32\u0c4b\u0c1a\u0c3f\u0c38\u0c4d\u0c24\u0c4b\u0c02\u0c26\u0c3f\u2026",
+    askOffline: "AI \u0c05\u0c38\u0c3f\u0c38\u0c4d\u0c1f\u0c46\u0c02\u0c1f\u0c4d \u0c07\u0c02\u0c15\u0c3e \u0c38\u0c3f\u0c26\u0c4d\u0c27\u0c02 \u0c15\u0c3e\u0c32\u0c47\u0c26\u0c41.",
+    askFail: "\u0c38\u0c2e\u0c3e\u0c27\u0c3e\u0c28\u0c02 \u0c30\u0c3e\u0c32\u0c47\u0c26\u0c41 \u2014 \u0c2e\u0c33\u0c4d\u0c32\u0c40 \u0c2a\u0c4d\u0c30\u0c2f\u0c24\u0c4d\u0c28\u0c3f\u0c02\u0c1a\u0c02\u0c21\u0c3f.",
+    askHint: "\u0c38\u0c2e\u0c3e\u0c27\u0c3e\u0c28\u0c3e\u0c32\u0c41 \u0c08 \u0c38\u0c48\u0c1f\u0c4d \u0c21\u0c47\u0c1f\u0c3e \u0c28\u0c41\u0c02\u0c21\u0c47. \u0c1a\u0c1f\u0c4d\u0c1f\u0c2a\u0c30\u0c2e\u0c48\u0c28 \u0c05\u0c35\u0c38\u0c30\u0c3e\u0c32\u0c15\u0c41 gis.apcrda.org/lps \u0c32\u0c4b \u0c27\u0c43\u0c35\u0c40\u0c15\u0c30\u0c3f\u0c02\u0c1a\u0c02\u0c21\u0c3f.",
     errToast: "ఏదో తప్పు జరిగింది — దయచేసి పేజీని రిఫ్రెష్ చేయండి.",
   },
 };
@@ -280,6 +304,7 @@ const state = {
   geoLoads: new Map(),  // village slug -> in-flight/settled fetch promise
   snapVersion: "",      // snapshot timestamp, used to version shard requests
   changes: null,        // permanent change log: { map: id -> [entries], since }
+  geoOk: false,         // snapshot id scheme matches this app -> shards usable
 };
 
 /* ---------------- map ---------------- */
@@ -401,6 +426,11 @@ fetch(CONFIG.SNAPSHOT)
   .then((j) => {
     if (!j.plots || !j.plots.length) throw new Error("empty snapshot");
     state.villageBounds = j.villageBounds || null;
+    // Geometry shards are only trusted when the snapshot declares the same
+    // id scheme this app uses. On mismatch (e.g. app updated before the data
+    // job reran) offline geometry is disabled and the live fallbacks take
+    // over — mismatched lookups can then never draw the wrong plot.
+    state.geoOk = j.idScheme === "p-oid";
     ingest(j.plots, j.generated);
     loadChanges();
   })
@@ -739,30 +769,57 @@ function openPlot(key) {
       });
     }
   }
-  const liveReg = rec ? rec.reg : "";
-  const liveCode = rec ? rec.code : key;
-  if (state.live && (liveCode || liveReg)) {
-    // regcode is unique per plot; plot_code can repeat, so it's only a fallback
+  // LIVE LOOKUP — by object id, the only truly unique key. APCRDA sometimes
+  // stamps one registration code onto two different plots, so a code query
+  // can return the wrong twin. And regardless of what the server returns,
+  // the VERIFICATION below refuses to display any feature that isn't the
+  // exact plot that was asked for — a wrong plot can never render.
+  const sameAsRec = (live) => {
+    if (!rec) return true;
+    if (rec.oid != null && live.oid != null) return String(live.oid) === String(rec.oid);
+    return live.code === rec.code && live.village === rec.village && String(live.no) === String(rec.no);
+  };
+  if (state.live && rec && rec.oid != null) {
+    L.esri.query(esriOpts({ url: CONFIG.SERVICE + "/" + CONFIG.PLOT_LAYER }))
+      .where("ESRI_OID = " + Number(rec.oid)).limit(1).returnGeometry(true)
+      .run((err, fc) => {
+        if (state.mode !== "plot" || state.selectedCode !== key) return; // user moved on
+        if (err || !fc || !fc.features.length) { renderCard(rec, null); return; }
+        const f = fc.features[0];
+        if (!sameAsRec(normalize(f.properties || {}))) { renderCard(rec, null); return; } // wrong plot — refuse
+        showFeature(f);
+      });
+  } else if (state.live && (rec ? (rec.reg || rec.code) : key)) {
+    const liveReg = rec ? rec.reg : "";
+    const liveCode = rec ? rec.code : key;
     const clause = looksLikeCode(liveReg)
       ? `regcode = '${liveReg.replace(/'/g, "''")}'`
-      : `plot_code = '${liveCode.replace(/'/g, "''")}'`;
+      : `plot_code = '${String(liveCode).replace(/'/g, "''")}'`;
     L.esri.query(esriOpts({ url: CONFIG.SERVICE + "/" + CONFIG.PLOT_LAYER }))
       .where(clause).limit(1).returnGeometry(true)
       .run((err, fc) => {
-        if (state.mode !== "plot" || state.selectedCode !== key) return; // user moved on
-        if (!err && fc && fc.features.length) showFeature(fc.features[0]);
-        else renderCard(rec, null); // fall back to snapshot record
+        if (state.mode !== "plot" || state.selectedCode !== key) return;
+        if (err || !fc || !fc.features.length) { renderCard(rec, null); return; }
+        const f = fc.features[0];
+        if (!sameAsRec(normalize(f.properties || {}))) { renderCard(rec, null); return; } // wrong plot — refuse
+        showFeature(f);
       });
   } else {
     renderCard(rec, null);
   }
 }
 
+// A clicked feature is either a returnable PLOT (full card, history, owner
+// view) or a land-use AREA — zone coverage, roads, unallocated or company
+// land. Areas are fully viewable, but on their own terms: their outline is
+// drawn WITHOUT flying the map to their (often village-sized) bounds, so
+// they can never hijack the view the way they used to.
+function isReturnablePlot(rec) {
+  return Number(rec.no) > 0 && (looksLikeCode(rec.code) || looksLikeCode(rec.reg));
+}
 function showFeature(f) {
   const rec = normalize(f.properties || {});
-  // final safety net: zone-coverage records (blank code, plot_no 0) hijack
-  // the view with village-sized polygons — refuse to display them
-  if (!rec.code && !(rec.reg && Number(rec.no) > 0)) return;
+  if (!isReturnablePlot(rec)) { showArea(rec, f.geometry); return; }
   const known = state.byCode.get(rec.id);
   if (known) rec.nbFromSnap = known.nb; // keep snapshot boundaries if live omits them
   state.selectedCode = rec.id;
@@ -824,6 +881,43 @@ function loadChanges() {
 }
 
 const HIST_LABEL_KEYS = { farmer_n: "hFarmer", symbology: "hZone", alloted_ex: "hExtent", reg_date_1: "hRegDate", regcode: "hRegCode" };
+function showArea(rec, geom) {
+  state.mode = "plot";
+  state.selectedCode = null;
+  renderTable();
+  highlight.clearLayers();
+  const ll = geojsonLatLngs(geom) || plotLatLngs(rec);
+  let poly = null;
+  if (ll) poly = L.polygon(ll, { color: "#17110C", weight: 2, dashArray: "4 6", fillColor: zoneColor(rec.sym), fillOpacity: 0.12 }).addTo(highlight);
+  // deliberately NO fitBounds here — the outline appears where the user
+  // clicked; zooming to a village-sized polygon is opt-in via the button
+  const zc = zoneColor(rec.sym);
+  const card = $("card");
+  card.innerHTML =
+    `<div class="zoneband" style="background:${zc}"></div>` +
+    `<button type="button" class="close" aria-label="Close">\u2715</button>` +
+    `<div class="eyebrow">${esc(t("areaEyebrow"))}</div>` +
+    `<h2>${esc(rec.sym || rec.code || t("areaTitle"))}</h2>` +
+    `<span class="zonechip" style="background:${zc}">${esc(rec.sym || "\u2014")}</span>` +
+    `<div class="sect">` +
+      kv(esc(t("lVillage")), esc(rec.village)) +
+      (rec.ext != null ? kv(esc(t("lExtent")), inr(Math.round(rec.ext))) : "") +
+      (rec.farmer ? kv(esc(t("lAllottee")), esc(rec.farmer)) : "") +
+      (rec.categ ? kv(esc(t("lCategory")), esc(rec.categ)) : "") +
+    `</div>` +
+    ownerLineHtml(rec) +
+    `<div class="hist none" style="border:none">${esc(t("areaNote"))}</div>` +
+    `<div class="actions">` +
+      (poly ? `<button type="button" class="primary" id="areaZoom">${esc(t("zoomArea"))}</button>` : "") +
+    `</div>`;
+  card.style.display = "block";
+  card.querySelector(".close").addEventListener("click", closeCard);
+  const ob = card.querySelector("#ownerLink");
+  if (ob) ob.addEventListener("click", () => openOwner(ob.dataset.owner));
+  const zb = $("areaZoom");
+  if (zb && poly) zb.addEventListener("click", () => { try { map.fitBounds(poly.getBounds().pad(0.1)); } catch (_) {} });
+}
+
 function historyHtml(rec) {
   if (!state.changes) return ""; // log not loaded yet
   const list = state.changes.map.get(rec.id) || [];
@@ -923,7 +1017,7 @@ function renderCard(rec, geom) {
 /* ---------------- owner view: all plots held by one allottee ---------------- */
 function ownerLineHtml(rec) {
   const name = primaryOwner(rec);
-  if (!name || isInstitutionalOwner(name)) return "";
+  if (!name) return "";
   const n = ownerPlots(name).length;
   if (n <= 1) return "";
   return `<div class="ownerbar"><span>${tf("ownerHolds", { n })}</span>` +
@@ -950,13 +1044,21 @@ function openOwner(name) {
   Promise.all(shardVillages.map(loadGeo)).then(() => {
   if (state.mode !== "owner" || state.owner !== key) return; // user moved on
 
-  // highlight every plot we can place offline; fit map to them
+  // Resolve every plot's outline: offline shards first, then a single LIVE
+  // query for anything unresolved (stale shards, schema changeover, missing
+  // geometry) — so the pins are placed correctly no matter the data state.
+  const resolved = new Map(); // plot id -> latlngs
+  for (const p of plots) { const ll = plotLatLngs(p); if (ll) resolved.set(p.id, ll); }
+  const missing = plots.filter((p) => !resolved.has(p.id) && p.oid != null).slice(0, 40);
+  const drawAll = () => {
+  if (state.mode !== "owner" || state.owner !== key) return; // re-check after async gap
+
   highlight.clearLayers();
   const placedPlots = []; // { p, poly, center, n }
   const MAX_DRAW = 400; // keep the map responsive for very large holders
   for (const p of plots) {
     if (placedPlots.length >= MAX_DRAW) break;
-    const ll = plotLatLngs(p);
+    const ll = resolved.get(p.id);
     if (!ll) continue;
     const poly = L.polygon(ll, OWNER_STYLE).addTo(highlight);
     poly.on("click", () => openPlot(p.id));
@@ -994,7 +1096,9 @@ function openOwner(name) {
   const totalExt = plots.reduce((s, p) => s + (typeof p.ext === "number" ? p.ext : 0), 0);
   const villages = [...new Set(plots.map((p) => p.village).filter((v) => v && v !== "—"))];
   const pinNo = new Map(placedPlots.map((x) => [x.p.id, x.n]));
-  const rows = plots.map((p) => {
+  const MAX_ROWS = 500; // keep huge institutional holders scrollable, not crashing
+  const shown = plots.slice(0, MAX_ROWS);
+  const rows = shown.map((p) => {
     const n = pinNo.get(p.id);
     return `<button type="button" class="ownerplot" data-code="${esc(p.id)}">` +
       (n ? `<span class="op-pin">${n}</span>` : `<span class="dot" style="background:${zoneColor(p.sym)}"></span>`) +
@@ -1002,7 +1106,7 @@ function openOwner(name) {
       `<span class="op-vil">${esc(p.village)}</span>` +
       `<span class="op-ext">${p.ext != null ? inr(Math.round(p.ext)) : "—"}</span>` +
     `</button>`;
-  }).join("");
+  }).join("") + (plots.length > MAX_ROWS ? `<div class="s-note">+ ${inr(plots.length - MAX_ROWS)} \u2026</div>` : "");
 
   const card = $("card");
   card.innerHTML =
@@ -1026,6 +1130,26 @@ function openOwner(name) {
   card.querySelector(".close").addEventListener("click", closeCard);
   card.querySelectorAll(".ownerplot").forEach((b) => b.addEventListener("click", () => openPlot(b.dataset.code)));
   $("ownerShare").addEventListener("click", () => copyShare($("ownerShare"), { owner: key }));
+  }; // end drawAll
+
+  if (missing.length && state.live) {
+    const oids = missing.map((p) => Number(p.oid)).filter(Number.isFinite);
+    L.esri.query(esriOpts({ url: CONFIG.SERVICE + "/" + CONFIG.PLOT_LAYER }))
+      .where("ESRI_OID IN (" + oids.join(",") + ")")
+      .limit(oids.length).returnGeometry(true)
+      .run((err, fc) => {
+        if (!err && fc && fc.features) {
+          for (const f of fc.features) {
+            const live = normalize(f.properties || {});
+            const ll = geojsonLatLngs(f.geometry);
+            if (live.id && ll && !resolved.has(live.id)) resolved.set(live.id, ll);
+          }
+        }
+        drawAll();
+      });
+  } else {
+    drawAll();
+  }
   }); // end shard-load wrapper
 }
 
@@ -1089,8 +1213,9 @@ map.on("click", (e) => {
     .tolerance(3)
     .run((err, fc) => {
       if (err || !fc || !fc.features.length) return;
-      const f = fc.features.find((x) => isRealPlotProps(x.properties));
-      if (!f) return; // clicked open zone / village / road area — nothing to open
+      // prefer a returnable plot under the cursor; otherwise show the
+      // land-use area / road / unallocated parcel that is there
+      const f = fc.features.find((x) => isRealPlotProps(x.properties)) || fc.features[0];
       showFeature(f);
     });
 });
@@ -1122,7 +1247,7 @@ function locateMe() {
     let E, N;
     try { [E, N] = proj4("WGS84", "APCRDA_UTM", [lon, lat]); } catch (_) { gpsNote(t("gpsNoFix")); return; }
     const vb = state.villageBounds;
-    if (!vb) { gpsNote(t("gpsNeedData")); map.setView([lat, lon], 16); return; }
+    if (!vb || !state.geoOk) { gpsNote(t("gpsNeedData")); map.setView([lat, lon], 16); return; }
     const PAD = 250; // metres of slack around village bounds
     const cands = Object.keys(vb).filter((sl) => {
       const b = vb[sl];
@@ -1218,6 +1343,79 @@ $("feedbtn").addEventListener("click", openFeed);
   });
 })();
 
+/* ---------------- Ask AI (RAG assistant) ----------------
+   Retrieval happens HERE in the browser over the full register; only the
+   matching records travel to the Cloudflare Worker, which holds the API key
+   and generates the answer. Grounded, cheap, and the key never touches the
+   client. */
+function buildAskContext(question) {
+  const sp = smartParse(question);
+  const ql = (sp.rest || "").toLowerCase();
+  let cand = state.plots;
+  if (sp.village) cand = cand.filter((p) => p.village === sp.village);
+  if (sp.family) cand = cand.filter((p) => zoneFamily(p.sym) === sp.family);
+  if (sp.minExt != null) cand = cand.filter((p) => typeof p.ext === "number" && p.ext >= sp.minExt);
+  let scored = cand;
+  if (ql) {
+    scored = cand.filter((p) =>
+      (p.farmer && p.farmer.toLowerCase().includes(ql)) ||
+      (p.code && p.code.toLowerCase().includes(ql)) ||
+      (p.reg && p.reg.toLowerCase().includes(ql)));
+  }
+  const top = scored.slice(0, 25);
+  const lines = top.map((p) =>
+    [p.code || p.reg, p.village, p.no, zoneCode(p.sym), p.ext != null ? p.ext : "", p.farmer || "", p.regdate || ""].join(" | "));
+  const totalExt = scored.reduce((a, p) => a + (typeof p.ext === "number" ? p.ext : 0), 0);
+  lines.push(`TOTALS for this filter: ${scored.length} plots, ${Math.round(totalExt)} total extent` +
+    (sp.village ? `, village=${sp.village}` : "") + (sp.family ? `, zone=${sp.family}` : ""));
+  return lines.join("\n");
+}
+function linkifyCodes(text) {
+  return esc(text).replace(/\b(\d{1,2}-[\d-]{3,24}[A-Z]\d{0,3})\b/g, (m) =>
+    state.byCode.has(m) ? `<button type="button" class="asklink" data-code="${m}">${m}</button>` : m);
+}
+function askAppend(role, html) {
+  const box = $("askmsgs");
+  const d = document.createElement("div");
+  d.className = "askmsg " + role;
+  d.innerHTML = html;
+  box.appendChild(d);
+  box.scrollTop = box.scrollHeight;
+  d.querySelectorAll(".asklink").forEach((b) => b.addEventListener("click", () => { openPlot(b.dataset.code); }));
+  return d;
+}
+async function askSubmit() {
+  const q = $("askinput").value.trim();
+  if (!q) return;
+  if (!CONFIG.ASK_ENDPOINT) { askAppend("bot", esc(t("askOffline"))); return; }
+  $("askinput").value = "";
+  askAppend("me", esc(q));
+  const wait = askAppend("bot", esc(t("askThinking")));
+  try {
+    const r = await fetch(CONFIG.ASK_ENDPOINT, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ question: q, context: buildAskContext(q), lang: LANG }),
+    });
+    const j = await r.json();
+    if (!r.ok || !j.answer) throw new Error(j.error || "no answer");
+    wait.innerHTML = linkifyCodes(j.answer).replace(/\n/g, "<br>");
+    wait.querySelectorAll(".asklink").forEach((b) => b.addEventListener("click", () => openPlot(b.dataset.code)));
+  } catch (_) {
+    wait.innerHTML = esc(t("askFail"));
+  }
+}
+$("askbtn").addEventListener("click", () => {
+  const p = $("askpanel");
+  const open = p.style.display === "flex";
+  p.style.display = open ? "none" : "flex";
+  if (!open) { $("askhint").textContent = t("askHint"); $("askinput").placeholder = t("askPh"); $("asksend").textContent = t("askSend"); $("askinput").focus(); }
+});
+$("asksend").addEventListener("click", askSubmit);
+$("askinput").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); askSubmit(); } });
+L.DomEvent.disableClickPropagation($("askpanel"));
+L.DomEvent.disableClickPropagation($("askbtn"));
+
 /* ---------------- mobile register toggle ---------------- */
 $("regtoggle").addEventListener("click", () => {
   const a = $("aside");
@@ -1253,6 +1451,7 @@ function applyLang() {
   if (state.changes) { $("feedbtn").textContent = t("recentChanges") + " (" + (state.changes.raw || []).length + ") →"; }
   $("btnGps").title = t("gpsTitle");
   $("btnSat").title = t("satellite");
+  $("askbtn").textContent = "\u2726 " + t("askBtn");
   const wt = $("wtitle"); if (wt) { wt.textContent = t("welcomeTitle"); $("wbody").textContent = t("welcomeBody"); $("wgo").textContent = t("welcomeBtn"); }
   applyFilters();
   // re-render whatever's open so its labels switch too

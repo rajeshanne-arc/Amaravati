@@ -258,6 +258,29 @@
     #card .actions, #card .close { display: none !important; }
     footer { position: static !important; }
   }
+  #askbtn {
+    position: fixed; right: 18px; bottom: 18px; z-index: 2500;
+    background: #182420; color: #F2EFE6; border: 1px solid #3a4a42; border-radius: 24px;
+    padding: 11px 18px; font: 600 13px 'IBM Plex Sans', sans-serif; cursor: pointer;
+    box-shadow: 0 8px 24px rgba(0,0,0,.28);
+  }
+  #askbtn:hover { background: #22312B; }
+  #askpanel {
+    position: fixed; right: 18px; bottom: 70px; z-index: 2500; width: min(360px, calc(100vw - 36px));
+    height: 420px; max-height: 70vh; background: var(--white); border: 1px solid var(--line);
+    border-radius: 14px; box-shadow: 0 16px 48px rgba(0,0,0,.25);
+    display: none; flex-direction: column; overflow: hidden;
+  }
+  #askmsgs { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .askmsg { max-width: 88%; padding: 8px 11px; border-radius: 11px; font-size: 12.5px; line-height: 1.5; }
+  .askmsg.me { align-self: flex-end; background: #182420; color: #F2EFE6; }
+  .askmsg.bot { align-self: flex-start; background: #F1EFE5; color: var(--ink-2); }
+  .asklink { background: none; border: none; padding: 0; color: #1D4E89; font: 500 12px 'IBM Plex Mono', monospace; cursor: pointer; text-decoration: underline; }
+  #askhint { padding: 4px 12px; font-size: 10.5px; color: #8a8474; border-top: 1px solid #EFEDE4; }
+  #askrow { display: flex; gap: 6px; padding: 8px 10px 10px; }
+  #askinput { flex: 1; resize: none; border: 1.5px solid #C9C4B4; border-radius: 9px; padding: 8px 10px; font: 400 12.5px 'IBM Plex Sans', sans-serif; }
+  #asksend { background: #182420; color: #F2EFE6; border: none; border-radius: 9px; padding: 0 14px; font: 600 12.5px 'IBM Plex Sans', sans-serif; cursor: pointer; }
+  @media print { #askbtn, #askpanel { display: none !important; } }
   #errtoast {
     position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 3000;
     background: #7a3423; color: #fff; padding: 10px 16px; border-radius: 10px;
@@ -342,6 +365,15 @@
   </div>
 </main>
 
+<button id="askbtn" type="button">&#10022; Ask AI</button>
+<div id="askpanel" role="dialog" aria-label="Ask the AI assistant" style="display:none">
+  <div id="askmsgs"></div>
+  <div id="askhint"></div>
+  <div id="askrow">
+    <textarea id="askinput" rows="1" placeholder="Ask about plots, owners, villages…"></textarea>
+    <button id="asksend" type="button">Ask</button>
+  </div>
+</div>
 <div id="welcome" role="dialog" aria-modal="true" aria-labelledby="wtitle" style="display:none">
   <div class="wbox">
     <div class="wmark">AMARAVATI · LPS ATLAS</div>
@@ -350,6 +382,6 @@
     <button id="wgo" type="button">Start searching</button>
   </div>
 </div>
-<script src="app.js?v=14"></script>
+<script src="app.js?v=16"></script>
 </body>
 </html>
