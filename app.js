@@ -329,15 +329,15 @@ function showLiveHelp() {
 function normalize(a) {
   const rawCode = (a.plot_code || "").trim();
   const rawReg = (a.regcode || "").trim();
-  // IDENTITY RULE: APCRDA sometimes writes zone labels ("Residential Vacant",
-  // "15.6 mtr Road") into plot_code, and the same code can repeat across
-  // villages — so plot_code is DISPLAY ONLY and never identity. The
-  // registration code is sector-qualified and unique per plot; records
-  // without a valid one get a synthetic id from the server's object id.
+  // IDENTITY RULE: the ONLY guaranteed-unique field is the server's object id.
+  // plot_code repeats and sometimes holds zone labels; even regcode is not
+  // unique in APCRDA's data (the same code can appear on two different plots).
+  // So identity is always the object id. Codes are for display and search.
   // (Must stay in lockstep with deriveId() in scripts/fetch-snapshot.mjs.)
-  const id = looksLikeCode(rawReg) ? rawReg : (a.ESRI_OID != null ? "oid-" + a.ESRI_OID : "");
+  const oid = a.ESRI_OID != null ? a.ESRI_OID : (a.esri_oid != null ? a.esri_oid : null);
+  const id = oid != null ? "p" + oid : (looksLikeCode(rawReg) ? rawReg : rawCode);
   return {
-    id, code: rawCode, no: a.plot_no ?? null, sym: a.symbology || "",
+    id, oid, code: rawCode, no: a.plot_no ?? null, sym: a.symbology || "",
     village: a.lpsvillage || "—", twp: a.township, sec: a.sector, col: a.colony, blk: a.block,
     ext: a.alloted_ex ?? null, len: a.polylength, wid: a.polywidth,
     categ: a.plot_categ, reg: rawReg, regdate: a.reg_date_1 || null,
@@ -354,14 +354,15 @@ function ingest(list, generated) {
     // records and the label-coded slivers ("Residential Vacant",
     // "15.6 mtr Road") that APCRDA stores in the same layer.
     .filter((p) => Number(p.no) > 0 && (looksLikeCode(p.code) || looksLikeCode(p.reg)));
-  // APCRDA's layer stores some plots as several identical overlapping records.
-  // Collapse rows that match on everything the user sees, so each real plot
-  // appears once. Rows sharing a code but differing (e.g. different allottee)
-  // are kept separate.
+  // APCRDA's layer stores some plots as several identical overlapping rows,
+  // each with its own object id. Collapse rows identical in every meaningful
+  // field so each real plot shows once. Rows that share a registration code
+  // but genuinely differ (e.g. two recorded allottees — a source data issue)
+  // are kept separate and shown honestly rather than silently merged.
   const seen = new Map();
   let dupes = 0;
   for (const p of all) {
-    const key = p.id + "|" + (p.farmer || "") + "|" + p.village + "|" + (p.no ?? "") + "|" + (p.ext ?? "");
+    const key = [p.reg, p.code, p.village, p.no ?? "", p.ext ?? "", p.farmer || "", (p.coord || "").slice(0, 60)].join("|");
     if (seen.has(key)) { dupes++; continue; }
     seen.set(key, p);
   }

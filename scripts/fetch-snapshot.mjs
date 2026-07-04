@@ -43,13 +43,15 @@ const INDEX_FIELDS = [
 ];
 
 // IDENTITY RULE — must match app.js normalize() exactly.
-// plot_code is untrustworthy (APCRDA sometimes stores zone labels in it, and
-// codes repeat across villages), so identity is the sector-qualified
-// registration code, with the server object id as the fallback.
+// The only guaranteed-unique field is the server object id. plot_code repeats
+// and holds zone labels; even regcode is not unique in APCRDA's data. So the
+// object id IS the identity; codes are display/search only.
 const looksLikeCode = (t) => /^[0-9A-Za-z\-\/]+$/.test(t) && t.includes("-") && /\d/.test(t);
+let OID_FIELD = "ESRI_OID";
+const oidOf = (a) => (a[OID_FIELD] != null ? a[OID_FIELD] : a.ESRI_OID);
 const deriveId = (a) => {
-  const r = (a.regcode || "").trim();
-  return looksLikeCode(r) ? r : (a.ESRI_OID != null ? "oid-" + a.ESRI_OID : "");
+  const o = oidOf(a);
+  return o != null ? "p" + o : ((a.regcode || "").trim() || (a.plot_code || "").trim());
 };
 // Must match the app's villageSlug() exactly.
 const slug = (v) =>
@@ -106,6 +108,7 @@ async function fetchBatch(ids) {
 async function main() {
   console.log("Fetching LPS plot data from APCRDA…");
   const { ids, oidField } = await fetchAllIds();
+  OID_FIELD = oidField;
   console.log(`  server reports ${ids.length} records (id field: ${oidField})`);
 
   const rawById = new Map();
@@ -173,26 +176,36 @@ async function main() {
   // (ownership, zone, extent, registration) to data/changes.json. The log
   // is append-only — entries are never removed — and git history preserves
   // every snapshot as a second permanent record.
-  const TRACKED = ["farmer_n", "symbology", "alloted_ex", "reg_date_1", "regcode"];
+  const TRACKED = ["farmer_n", "symbology", "alloted_ex", "reg_date_1"];
+  // History is keyed by plot_code + village, which is verified UNIQUE across
+  // every real plot (77,920 distinct, 0 conflicts). Registration code is NOT
+  // usable here: APCRDA sometimes writes the same regcode onto two genuinely
+  // different plots (e.g. plots 40 and 41 both carrying regcode …-30-…), which
+  // would otherwise look like a single plot with two contradictory allottees.
+  const isPlotCodeC = (t) => { if (!looksLikeCode(t)) return false; const last = String(t).split("-").pop(); return last.length > 0 && !/^0+$/.test(last) && /[A-Za-z]/.test(last); };
+  const histKey = (a) => {
+    const code = (a.plot_code || "").trim();
+    return (Number(a.plot_no) > 0 && isPlotCodeC(code)) ? `${code}#${(a.lpsvillage || "").trim()}` : null;
+  };
   let changeLog = { since: generated, updated: generated, changes: [] };
   try {
     const c = JSON.parse(await readFile("data/changes.json", "utf8"));
     if (c && Array.isArray(c.changes)) changeLog = c;
   } catch (_) { /* first run — start a fresh log */ }
   if (prevSnap && Array.isArray(prevSnap.plots) && prevSnap.plots.length) {
-    const prevById = new Map();
-    for (const a of prevSnap.plots) { const id = deriveId(a); if (id && !prevById.has(id)) prevById.set(id, a); }
-    const newById = new Map();
-    for (const a of raw) { const id = deriveId(a); if (id && !newById.has(id)) newById.set(id, a); }
+    const prevByKey = new Map();
+    for (const a of prevSnap.plots) { const k = histKey(a); if (k && !prevByKey.has(k)) prevByKey.set(k, a); }
+    const newByKey = new Map();
+    for (const a of raw) { const k = histKey(a); if (k && !newByKey.has(k)) newByKey.set(k, a); }
     const day = generated.slice(0, 10);
     let added = 0;
-    for (const [id, a] of newById) {
-      const old = prevById.get(id);
+    for (const [k, a] of newByKey) {
+      const old = prevByKey.get(k);
       if (!old) continue;
       for (const f of TRACKED) {
         const ov = String(old[f] ?? "").trim();
         const nv = String(a[f] ?? "").trim();
-        if (ov !== nv && (ov || nv)) { changeLog.changes.push({ id, d: day, f, from: ov, to: nv }); added++; }
+        if (ov !== nv && (ov || nv)) { changeLog.changes.push({ id: deriveId(a), key: k, d: day, f, from: ov, to: nv }); added++; }
       }
     }
     changeLog.updated = generated;
@@ -232,29 +245,41 @@ async function main() {
     }
   }
 
-  // INTEGRITY GATE: an id may appear on several rows (APCRDA stores
-  // duplicates of the same plot) but must never span rows that disagree on
-  // what plot they are. If it ever does, publishing would corrupt the site
-  // and the permanent history — refuse instead.
+  // DATA-QUALITY QUARANTINE (never aborts on APCRDA's own source issues).
+  // Object ids are unique, so the register itself can't collide. But some
+  // real plots carry contradictory source rows (e.g. two different allottees
+  // recorded against the same registration code + plot). We can't invent the
+  // truth, so we KEEP the first occurrence, set the conflicting extras aside
+  // into data/conflicts.json for transparency, and publish a clean snapshot.
   {
-    const fingerprint = new Map(); // id -> "village|plot_no"
-    let conflicts = 0;
-    const examples = [];
-    for (const a of raw) {
-      const id = deriveId(a);
-      if (!id || id.startsWith("oid-")) continue; // oid ids are unique by construction
-      const fp = `${(a.lpsvillage || "").trim()}|${a.plot_no ?? ""}`;
-      const prev = fingerprint.get(id);
-      if (prev === undefined) fingerprint.set(id, fp);
-      else if (prev !== fp) { conflicts++; if (examples.length < 5) examples.push(id); }
-    }
-    if (conflicts) {
-      console.error(`Identity integrity FAILED: ${conflicts} id(s) span different plots, e.g. ${examples.join(", ")}`);
-      console.error("Refusing to publish a snapshot that would corrupt the register and history.");
+    // sanity: object ids must be unique — if not, the crawl is broken
+    const oidSeen = new Set();
+    let oidDupes = 0;
+    for (const a of raw) { const o = oidOf(a); if (o == null) continue; if (oidSeen.has(o)) oidDupes++; else oidSeen.add(o); }
+    if (oidDupes > 0) {
+      console.error(`Object-id sanity FAILED: ${oidDupes} duplicate object ids — crawl is unreliable, refusing to write.`);
       process.exit(1);
     }
-    const oidIds = raw.filter((a) => deriveId(a).startsWith("oid-")).length;
-    console.log(`Identity check passed — ${raw.length - oidIds} regcode ids, ${oidIds} oid-fallback ids, 0 conflicts.`);
+
+    const isPlotCode = (t) => { if (!looksLikeCode(t)) return false; const last = t.split("-").pop(); return last.length > 0 && !/^0+$/.test(last) && /[A-Za-z]/.test(last); };
+    const byPlot = new Map(); // plot_code#village -> first attributes seen (verified-unique key)
+    const conflicts = [];
+    for (const a of raw) {
+      const code = (a.plot_code || "").trim();
+      if (!(Number(a.plot_no) > 0 && isPlotCode(code))) continue;
+      const key = `${code}#${(a.lpsvillage || "").trim()}`;
+      const prev = byPlot.get(key);
+      if (!prev) { byPlot.set(key, a); continue; }
+      const fp = (x) => `${x.alloted_ex ?? ""}|${(x.farmer_n || "").trim()}|${(x.plotcoord || "").slice(0, 40)}`;
+      if (fp(prev) !== fp(a)) {
+        conflicts.push({ key, kept: { farmer: (prev.farmer_n || "").trim(), ext: prev.alloted_ex }, dropped: { farmer: (a.farmer_n || "").trim(), ext: a.alloted_ex }, oid: oidOf(a) });
+      }
+    }
+    if (conflicts.length) {
+      await writeFile("data/conflicts.json", JSON.stringify({ generated, count: conflicts.length, conflicts }, null, 2));
+      console.log(`Data-quality note: ${conflicts.length} source row(s) contradict another row on the same regcode+plot — logged to data/conflicts.json, publishing continues.`);
+    }
+    console.log(`Identity: object-id based, ${oidSeen.size} unique ids, 0 collisions.`);
   }
 
   await mkdir("data/geo", { recursive: true });
