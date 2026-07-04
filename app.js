@@ -227,7 +227,7 @@ const I18N = {
     printRec: "Print record",
     recentChanges: "Recent changes", feedTitle: "RECENT CHANGES — ALL PLOTS", feedEmpty: "No changes recorded yet. The nightly comparison will list ownership, zone and registration changes here, permanently.",
     swipeT: "Compare with satellite", swipeOffT: "Turn off compare",
-    collapseT: "Hide list", expandT: "Show list",
+    collapseT: "Hide list", expandT: "Show list", legendTitle: "Zone legend", legend: "Legend",
     lyrTitle: "Map layers", lyrHint: "APCRDA reference layers \u00b7 tap to overlay", lyrLoadingOne: "loading\u2026", lyrFail: "couldn't load",
     areaEyebrow: "LAND-USE AREA — NOT A RETURNABLE PLOT", areaTitle: "Area", areaNote: "Zone coverage, roads, unallocated and institutional lands are viewable here but are not individual returnable plots, so they have no boundaries walk or change history.", zoomArea: "Zoom to this area",
     askBtn: "Ask AI", askPh: "Ask about plots, owners, villages\u2026", askSend: "Ask", askThinking: "Thinking\u2026",
@@ -276,7 +276,7 @@ const I18N = {
     printRec: "రికార్డు ప్రింట్",
     recentChanges: "ఇటీవలి మార్పులు", feedTitle: "ఇటీవలి మార్పులు — అన్ని ప్లాట్లు", feedEmpty: "ఇంకా మార్పులు నమోదు కాలేదు. రాత్రి పోలిక ద్వారా యాజమాన్య, జోన్, రిజిస్ట్రేషన్ మార్పులు ఇక్కడ శాశ్వతంగా కనిపిస్తాయి.",
     swipeT: "\u0c36\u0c3e\u0c1f\u0c3f\u0c32\u0c48\u0c1f\u0c4d\u200c\u0c24\u0c4b \u0c2a\u0c4b\u0c32\u0c4d\u0c1a\u0c02\u0c21\u0c3f", swipeOffT: "\u0c2a\u0c4b\u0c32\u0c3f\u0c15 \u0c06\u0c2a\u0c02\u0c21\u0c3f",
-    collapseT: "\u0c1c\u0c3e\u0c2c\u0c3f\u0c24\u0c3e \u0c26\u0c3e\u0c1a\u0c41", expandT: "\u0c1c\u0c3e\u0c2c\u0c3f\u0c24\u0c3e \u0c1a\u0c42\u0c2a\u0c41",
+    collapseT: "\u0c1c\u0c3e\u0c2c\u0c3f\u0c24\u0c3e \u0c26\u0c3e\u0c1a\u0c41", expandT: "\u0c1c\u0c3e\u0c2c\u0c3f\u0c24\u0c3e \u0c1a\u0c42\u0c2a\u0c41", legendTitle: "\u0c1c\u0c4b\u0c28\u0c4d \u0c32\u0c46\u0c1c\u0c46\u0c02\u0c21\u0c4d", legend: "\u0c32\u0c46\u0c1c\u0c46\u0c02\u0c21\u0c4d",
     lyrTitle: "\u0c2e\u0c4d\u0c2f\u0c3e\u0c2a\u0c4d \u0c32\u0c47\u0c2f\u0c30\u0c4d\u0c32\u0c41", lyrHint: "APCRDA \u0c30\u0c3f\u0c2b\u0c30\u0c46\u0c28\u0c4d\u0c38\u0c4d \u0c32\u0c47\u0c2f\u0c30\u0c4d\u0c32\u0c41", lyrLoadingOne: "\u0c32\u0c4b\u0c21\u0c4d \u0c05\u0c35\u0c41\u0c24\u0c4b\u0c02\u0c26\u0c3f\u2026", lyrFail: "\u0c32\u0c4b\u0c21\u0c4d \u0c15\u0c3e\u0c32\u0c47\u0c26\u0c41",
     areaEyebrow: "\u0c2d\u0c42\u0c35\u0c3f\u0c28\u0c3f\u0c2f\u0c4b\u0c17 \u0c2a\u0c4d\u0c30\u0c3e\u0c02\u0c24\u0c02 \u2014 \u0c30\u0c3f\u0c1f\u0c30\u0c4d\u0c28\u0c2c\u0c41\u0c32\u0c4d \u0c2a\u0c4d\u0c32\u0c3e\u0c1f\u0c4d \u0c15\u0c3e\u0c26\u0c41", areaTitle: "\u0c2a\u0c4d\u0c30\u0c3e\u0c02\u0c24\u0c02", areaNote: "\u0c1c\u0c4b\u0c28\u0c4d \u0c15\u0c35\u0c30\u0c47\u0c1c\u0c4d, \u0c30\u0c4b\u0c21\u0c4d\u0c32\u0c41, \u0c15\u0c47\u0c1f\u0c3e\u0c2f\u0c3f\u0c02\u0c1a\u0c28\u0c3f \u0c2d\u0c42\u0c2e\u0c41\u0c32\u0c41 \u0c07\u0c15\u0c4d\u0c15\u0c21 \u0c1a\u0c42\u0c21\u0c35\u0c1a\u0c4d\u0c1a\u0c41, \u0c15\u0c3e\u0c28\u0c40 \u0c05\u0c35\u0c3f \u0c35\u0c4d\u0c2f\u0c15\u0c4d\u0c24\u0c3f\u0c17\u0c24 \u0c2a\u0c4d\u0c32\u0c3e\u0c1f\u0c4d\u0c32\u0c41 \u0c15\u0c3e\u0c35\u0c41.", zoomArea: "\u0c08 \u0c2a\u0c4d\u0c30\u0c3e\u0c02\u0c24\u0c3e\u0c28\u0c3f\u0c15\u0c3f \u0c1c\u0c42\u0c2e\u0c4d",
     askBtn: "AI \u0c28\u0c3f \u0c05\u0c21\u0c17\u0c02\u0c21\u0c3f", askPh: "\u0c2a\u0c4d\u0c32\u0c3e\u0c1f\u0c4d\u0c32\u0c41, \u0c2f\u0c1c\u0c2e\u0c3e\u0c28\u0c41\u0c32\u0c41, \u0c17\u0c4d\u0c30\u0c3e\u0c2e\u0c3e\u0c32 \u0c17\u0c41\u0c30\u0c3f\u0c02\u0c1a\u0c3f \u0c05\u0c21\u0c17\u0c02\u0c21\u0c3f\u2026", askSend: "\u0c05\u0c21\u0c17\u0c02\u0c21\u0c3f", askThinking: "\u0c06\u0c32\u0c4b\u0c1a\u0c3f\u0c38\u0c4d\u0c24\u0c4b\u0c02\u0c26\u0c3f\u2026",
@@ -1433,6 +1433,64 @@ function openLayers() {
     });
   });
 }
+/* ---- zone legend (built from the app's own ZONE_COLORS) ---- */
+const LEGEND_ROWS = [
+  { fam: "Residential", en: "Residential", te: "\u0c28\u0c3f\u0c35\u0c3e\u0c38", zones: [
+    ["R1", "Village planning", "\u0c17\u0c4d\u0c30\u0c3e\u0c2e \u0c2a\u0c4d\u0c32\u0c3e\u0c28\u0c3f\u0c02\u0c17\u0c4d"],
+    ["R2", "Low density", "\u0c24\u0c15\u0c4d\u0c15\u0c41\u0c35 \u0c38\u0c3e\u0c02\u0c26\u0c4d\u0c30\u0c24"],
+    ["R3", "Medium\u2013high density", "\u0c2e\u0c27\u0c4d\u0c2f\u0c2e-\u0c05\u0c27\u0c3f\u0c15 \u0c38\u0c3e\u0c02\u0c26\u0c4d\u0c30\u0c24"],
+    ["R4", "High density", "\u0c05\u0c27\u0c3f\u0c15 \u0c38\u0c3e\u0c02\u0c26\u0c4d\u0c30\u0c24"],
+  ]},
+  { fam: "Commercial", en: "Commercial", te: "\u0c35\u0c3e\u0c23\u0c3f\u0c1c\u0c4d\u0c2f", zones: [
+    ["C1", "Convenience", "\u0c38\u0c46\u0c2c\u0c4d"],
+    ["C2", "General commercial", "\u0c38\u0c3e\u0c27\u0c3e\u0c30\u0c23 \u0c35\u0c3e\u0c23\u0c3f\u0c1c\u0c4d\u0c2f"],
+    ["C3", "Neighbourhood centre", "\u0c2a\u0c4a\u0c30\u0c41\u0c17\u0c41 \u0c15\u0c47\u0c02\u0c26\u0c4d\u0c30\u0c02"],
+    ["C4", "Town centre", "\u0c1f\u0c4c\u0c28\u0c4d \u0c15\u0c47\u0c02\u0c26\u0c4d\u0c30\u0c02"],
+    ["C5", "Regional centre", "\u0c2a\u0c4d\u0c30\u0c3e\u0c02\u0c24\u0c40\u0c2f \u0c15\u0c47\u0c02\u0c26\u0c4d\u0c30\u0c02"],
+    ["C6", "Central business district", "\u0c38\u0c46\u0c02\u0c1f\u0c4d\u0c30\u0c32\u0c4d \u0c2c\u0c3f\u0c1c\u0c3f\u0c28\u0c46\u0c38\u0c4d"],
+  ]},
+  { fam: "Industry", en: "Industry", te: "\u0c2a\u0c30\u0c3f\u0c36\u0c4d\u0c30\u0c2e", zones: [
+    ["I1", "Business park", "\u0c2c\u0c3f\u0c1c\u0c3f\u0c28\u0c46\u0c38\u0c4d \u0c2a\u0c3e\u0c30\u0c4d\u0c15\u0c4d"],
+    ["I2", "Logistics", "\u0c32\u0c3e\u0c1c\u0c3f\u0c38\u0c4d\u0c1f\u0c3f\u0c15\u0c4d\u0c38\u0c4d"],
+    ["I3", "Non-polluting industry", "\u0c15\u0c3e\u0c32\u0c41\u0c37\u0c4d\u0c2f\u0c30\u0c39\u0c3f\u0c24 \u0c2a\u0c30\u0c3f\u0c36\u0c4d\u0c30\u0c2e"],
+  ]},
+  { fam: "Parks", en: "Parks & open space", te: "\u0c2a\u0c3e\u0c30\u0c4d\u0c15\u0c41\u0c32\u0c41", zones: [
+    ["P1", "Passive zone", "\u0c2a\u0c3e\u0c38\u0c3f\u0c35\u0c4d"],
+    ["P2", "Active zone", "\u0c2f\u0c3e\u0c15\u0c4d\u0c1f\u0c3f\u0c35\u0c4d"],
+    ["P3", "Protected zone", "\u0c38\u0c02\u0c30\u0c15\u0c4d\u0c37\u0c3f\u0c24"],
+  ]},
+  { fam: "Institutional", en: "Institutional", te: "\u0c38\u0c02\u0c38\u0c4d\u0c25\u0c3e\u0c17\u0c24", zones: [
+    ["S1", "Government", "\u0c2a\u0c4d\u0c30\u0c2d\u0c41\u0c24\u0c4d\u0c35"],
+    ["S2", "Education", "\u0c35\u0c3f\u0c26\u0c4d\u0c2f"],
+    ["S3", "Special zone", "\u0c2a\u0c4d\u0c30\u0c24\u0c4d\u0c2f\u0c47\u0c15"],
+  ]},
+  { fam: "Reserve", en: "Reserve & roads", te: "\u0c30\u0c3f\u0c1c\u0c30\u0c4d\u0c35\u0c4d, \u0c30\u0c4b\u0c21\u0c4d\u0c32\u0c41", zones: [
+    ["U1", "Utilities / reserve", "\u0c2f\u0c42\u0c1f\u0c3f\u0c32\u0c3f\u0c1f\u0c40\u0c38\u0c4d"],
+    ["U2", "Road network", "\u0c30\u0c4b\u0c21\u0c4d \u0c28\u0c46\u0c1f\u0c4d\u0c35\u0c30\u0c4d\u0c15\u0c4d"],
+  ]},
+];
+function openLegend() {
+  const panel = $("legendpanel");
+  const isOpen = panel.style.display === "block";
+  if (isOpen) { panel.style.display = "none"; return; }
+  panel.style.display = "block";
+  $("legendtitle").textContent = t("legendTitle");
+  let html = "";
+  for (const g of LEGEND_ROWS) {
+    html += `<div class="leg-group">${esc(LANG === "te" ? g.te : g.en)}</div>`;
+    for (const [code, en, te] of g.zones) {
+      const col = ZONE_COLORS[code] || "#CFCABB";
+      html += `<div class="leg-row"><span class="leg-sw" style="background:${col}"></span>` +
+        `<span class="leg-code">${code}</span><span class="leg-name">${esc(LANG === "te" ? te : en)}</span></div>`;
+    }
+  }
+  $("legendbody").innerHTML = html;
+}
+$("btnLegend").addEventListener("click", openLegend);
+$("legendclose").addEventListener("click", () => { $("legendpanel").style.display = "none"; });
+L.DomEvent.disableClickPropagation($("legendpanel"));
+L.DomEvent.disableClickPropagation($("btnLegend"));
+
 /* ---- collapse the register panel (desktop) ---- */
 function setCollapsed(on) {
   document.body.classList.toggle("collapsed", on);
@@ -1611,6 +1669,7 @@ function applyLang() {
   $("askbtn").textContent = "\u2726 " + t("askBtn");
   $("btnSwipe").title = swipeOn ? t("swipeOffT") : t("swipeT");
   $("btnLayers").title = t("lyrTitle");
+  $("btnLegend").title = t("legendTitle");
   $("collapseBtn").title = document.body.classList.contains("collapsed") ? t("expandT") : t("collapseT");
   const wt = $("wtitle"); if (wt) { wt.textContent = t("welcomeTitle"); $("wbody").textContent = t("welcomeBody"); $("wgo").textContent = t("welcomeBtn"); }
   applyFilters();

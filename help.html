@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Help &amp; FAQ — Amaravati LPS Atlas</title>
+<meta name="description" content="How to search for your plot, read a plot card, use the map, and answers to common questions about the Amaravati LPS Atlas." />
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap');
+  :root { --ink:#182420; --ink2:#26221A; --muted:#7d7768; --paper:#F1EFE7; --panel:#FBFAF4; --line:#DDD9CB; --link:#1D4E89; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink2); font-family:'IBM Plex Sans',system-ui,sans-serif; }
+  header { background:var(--ink); color:#F2EFE6; padding:14px 20px; display:flex; align-items:center; gap:14px; }
+  .wordmark { font:800 15px 'Archivo',sans-serif; letter-spacing:.2em; }
+  header .right { margin-left:auto; display:flex; align-items:center; gap:16px; }
+  header a { color:#A8E5B2; font-size:12.5px; text-decoration:none; }
+  #langtoggle { background:#22312B; color:#F2EFE6; border:1px solid #3a4a42; border-radius:8px; padding:5px 10px; font:600 11.5px 'IBM Plex Sans',sans-serif; cursor:pointer; }
+  main { max-width:760px; margin:0 auto; padding:28px 20px 60px; }
+  h1 { font:800 26px 'Archivo',sans-serif; letter-spacing:.02em; margin:.2em 0 .6em; }
+  h2 { font:700 15px 'Archivo',sans-serif; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin:2.2em 0 .6em; }
+  h3 { font:600 15px 'IBM Plex Sans',sans-serif; color:var(--ink); margin:1.4em 0 .3em; }
+  p, li { font-size:14.5px; line-height:1.65; }
+  a { color:var(--link); }
+  code { font:500 12.5px 'IBM Plex Mono',monospace; background:#EFEDE4; padding:1px 6px; border-radius:5px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px 18px; margin:14px 0; }
+  .step { display:flex; gap:12px; margin:10px 0; }
+  .step .n { flex:none; width:26px; height:26px; border-radius:50%; background:var(--ink); color:#F2EFE6; font:700 13px 'IBM Plex Sans',sans-serif; display:flex; align-items:center; justify-content:center; }
+  .step .b { font-size:14px; line-height:1.55; }
+  details { border-bottom:1px solid var(--line); padding:12px 2px; }
+  summary { font:600 14.5px 'IBM Plex Sans',sans-serif; color:var(--ink); cursor:pointer; list-style:none; }
+  summary::-webkit-details-marker { display:none; }
+  summary::before { content:"+ "; color:var(--muted); }
+  details[open] summary::before { content:"\2212 "; }
+  details p { margin:.6em 0 .2em; color:#3d4a44; }
+  .te { display:none; }
+  body.lang-te .en { display:none; }
+  body.lang-te .te { display:block; }
+  body.lang-te li.te { display:list-item; }
+  .foot { margin-top:36px; font-size:12.5px; color:var(--muted); }
+</style>
+</head>
+<body>
+<header>
+  <div class="wordmark">AMARAVATI · LPS ATLAS</div>
+  <div class="right">
+    <button id="langtoggle" type="button">తెలుగు</button>
+    <a href="./">← <span class="en">Back to the map</span><span class="te">మ్యాప్‌కి తిరిగి</span></a>
+  </div>
+</header>
+<main>
+  <h1><span class="en">Help &amp; FAQ</span><span class="te">సహాయం &amp; ప్రశ్నలు</span></h1>
+  <p>
+    <span class="en">This viewer helps you find a returnable plot in the APCRDA Land Pooling Scheme and see who it is recorded to. It is unofficial — always confirm anything important on the official site.</span>
+    <span class="te">ఈ వ్యూయర్ APCRDA ల్యాండ్ పూలింగ్ స్కీమ్‌లో మీ ప్లాట్‌ను కనుగొని, అది ఎవరి పేరుతో నమోదైందో చూడటానికి సహాయపడుతుంది. ఇది అనధికారికం — ముఖ్యమైన విషయాలను ఎప్పుడూ అధికారిక సైట్‌లో నిర్ధారించుకోండి.</span>
+  </p>
+
+  <h2><span class="en">How to search</span><span class="te">ఎలా వెతకాలి</span></h2>
+  <div class="card">
+    <div class="step"><div class="n">1</div><div class="b">
+      <span class="en">Type in the search box at the top. You can search three ways.</span>
+      <span class="te">పైన ఉన్న సెర్చ్ బాక్స్‌లో టైప్ చేయండి. మూడు విధాలుగా వెతకవచ్చు.</span>
+    </div></div>
+    <div class="step"><div class="n">2</div><div class="b">
+      <span class="en">By <b>allottee name</b> — e.g. <code>Anne Sambasiva Rao</code>. Partial names work too.</span>
+      <span class="te"><b>కేటాయింపుదారు పేరు</b> ద్వారా — ఉదా. <code>Anne Sambasiva Rao</code>. పాక్షిక పేర్లు కూడా పని చేస్తాయి.</span>
+    </div></div>
+    <div class="step"><div class="n">3</div><div class="b">
+      <span class="en">By <b>plot code</b> — e.g. <code>5-324-3179-7-K1</code>. Copy it exactly if you have it.</span>
+      <span class="te"><b>ప్లాట్ కోడ్</b> ద్వారా — ఉదా. <code>5-324-3179-7-K1</code>. మీ దగ్గర ఉంటే ఖచ్చితంగా కాపీ చేయండి.</span>
+    </div></div>
+    <div class="step"><div class="n">4</div><div class="b">
+      <span class="en">Narrow it down — pick a <b>village</b> from the dropdown, or tap a <b>zone colour</b> chip (Residential, Commercial…) to filter the list.</span>
+      <span class="te">తగ్గించండి — డ్రాప్‌డౌన్ నుండి <b>గ్రామం</b> ఎంచుకోండి, లేదా జాబితాను ఫిల్టర్ చేయడానికి <b>జోన్ రంగు</b> చిప్‌ను (నివాస, వాణిజ్య…) నొక్కండి.</span>
+    </div></div>
+  </div>
+
+  <h2><span class="en">Reading a plot</span><span class="te">ప్లాట్‌ను చదవడం</span></h2>
+  <p>
+    <span class="en">Tap any row in the list, or tap a plot on the map. A card opens showing the village, plot number, extent (as recorded), zone, registration code and the recorded allottee. If that person holds more than one plot, tap <b>View all</b> to see every plot pinned on the map. Tap a boundary code to walk to the neighbouring plot.</span>
+    <span class="te">జాబితాలో ఏదైనా వరుసను నొక్కండి, లేదా మ్యాప్‌లో ఒక ప్లాట్‌ను నొక్కండి. గ్రామం, ప్లాట్ నంబర్, విస్తీర్ణం, జోన్, రిజిస్ట్రేషన్ కోడ్ మరియు కేటాయింపుదారును చూపించే కార్డ్ తెరుచుకుంటుంది. ఆ వ్యక్తికి ఒకటి కంటే ఎక్కువ ప్లాట్లు ఉంటే, మ్యాప్‌లో అన్నింటినీ చూడటానికి <b>View all</b> నొక్కండి.</span>
+  </p>
+
+  <h2><span class="en">Using the map</span><span class="te">మ్యాప్‌ను ఉపయోగించడం</span></h2>
+  <ul>
+    <li class="en"><b>📍 Find my plot</b> — uses your phone's location to show the plot you are standing on.</li>
+    <li class="te"><b>📍 నా ప్లాట్‌ను కనుగొను</b> — మీరు నిలబడి ఉన్న ప్లాట్‌ను చూపించడానికి మీ ఫోన్ లొకేషన్‌ను ఉపయోగిస్తుంది.</li>
+    <li class="en"><b>🛰 Satellite</b> — switch the base map to satellite imagery.</li>
+    <li class="te"><b>🛰 శాటిలైట్</b> — బేస్ మ్యాప్‌ను శాటిలైట్ చిత్రాలకు మార్చండి.</li>
+    <li class="en"><b>⇔ Compare</b> — drag a divider to compare the plot map against satellite side by side.</li>
+    <li class="te"><b>⇔ పోల్చు</b> — ప్లాట్ మ్యాప్‌ను శాటిలైట్‌తో పక్కపక్కనే పోల్చడానికి డివైడర్‌ను లాగండి.</li>
+    <li class="en"><b>☰ Layers</b> — overlay APCRDA reference layers: roads, transport, boundaries, forests.</li>
+    <li class="te"><b>☰ లేయర్లు</b> — APCRDA రిఫరెన్స్ లేయర్లను అతికించండి: రోడ్లు, రవాణా, హద్దులు, అడవులు.</li>
+    <li class="en"><b>🗺 Legend</b> — what each zone colour means.</li>
+    <li class="te"><b>🗺 లెజెండ్</b> — ప్రతి జోన్ రంగు అర్థం.</li>
+    <li class="en"><b>★ My plots</b> — save plots you care about to find them again quickly.</li>
+    <li class="te"><b>★ నా ప్లాట్లు</b> — మీకు ముఖ్యమైన ప్లాట్లను సేవ్ చేసి, వాటిని త్వరగా మళ్లీ కనుగొనండి.</li>
+  </ul>
+
+  <h2><span class="en">Common questions</span><span class="te">సాధారణ ప్రశ్నలు</span></h2>
+
+  <details>
+    <summary><span class="en">Is this the official land record?</span><span class="te">ఇది అధికారిక భూమి రికార్డా?</span></summary>
+    <p class="en">No. This is an unofficial viewer built on APCRDA's public GIS data. It is a convenience tool, not proof of ownership. For any legal or financial decision, verify at <a href="https://gis.apcrda.org/lps/index.html" target="_blank" rel="noopener">gis.apcrda.org/lps</a>.</p>
+    <p class="te">కాదు. ఇది APCRDA యొక్క పబ్లిక్ GIS డేటాపై నిర్మించిన అనధికారిక వ్యూయర్. ఇది సౌలభ్య సాధనం మాత్రమే, యాజమాన్య రుజువు కాదు. ఏదైనా చట్టపరమైన నిర్ణయానికి <a href="https://gis.apcrda.org/lps/index.html" target="_blank" rel="noopener">gis.apcrda.org/lps</a> లో నిర్ధారించుకోండి.</p>
+  </details>
+
+  <details>
+    <summary><span class="en">How fresh is the data?</span><span class="te">డేటా ఎంత తాజాది?</span></summary>
+    <p class="en">The register is refreshed from APCRDA once a day. The snapshot date is shown at the top of the page and on the map footer.</p>
+    <p class="te">రిజిస్టర్ రోజుకు ఒకసారి APCRDA నుండి రిఫ్రెష్ అవుతుంది. స్నాప్‌షాట్ తేదీ పేజీ పైన మరియు మ్యాప్ ఫుటర్‌లో చూపబడుతుంది.</p>
+  </details>
+
+  <details>
+    <summary><span class="en">I can't find my plot. Why?</span><span class="te">నా ప్లాట్ కనిపించడం లేదు. ఎందుకు?</span></summary>
+    <p class="en">Try searching by name instead of code, or by code instead of name. Check spelling and try a partial name. Clear the village and zone filters. Some records in APCRDA's data are incomplete or use different spellings — if it still isn't there, it may not be in the published dataset.</p>
+    <p class="te">కోడ్‌కు బదులు పేరుతో, లేదా పేరుకు బదులు కోడ్‌తో వెతకండి. స్పెల్లింగ్ తనిఖీ చేసి పాక్షిక పేరు ప్రయత్నించండి. గ్రామం మరియు జోన్ ఫిల్టర్లను క్లియర్ చేయండి. APCRDA డేటాలో కొన్ని రికార్డులు అసంపూర్ణంగా ఉండవచ్చు.</p>
+  </details>
+
+  <details>
+    <summary><span class="en">The name on my plot is wrong or outdated.</span><span class="te">నా ప్లాట్‌పై పేరు తప్పు లేదా పాతది.</span></summary>
+    <p class="en">The names come straight from APCRDA's records and are shown as-is. This viewer cannot change them. Corrections must be made through APCRDA. See the <a href="about.html">About &amp; data policy</a> page for how records are sourced.</p>
+    <p class="te">పేర్లు నేరుగా APCRDA రికార్డుల నుండి వస్తాయి. ఈ వ్యూయర్ వాటిని మార్చలేదు. దిద్దుబాట్లు APCRDA ద్వారా చేయాలి. <a href="about.html">About &amp; data policy</a> పేజీ చూడండి.</p>
+  </details>
+
+  <details>
+    <summary><span class="en">What does "extent (as recorded)" mean?</span><span class="te">"extent (as recorded)" అంటే ఏమిటి?</span></summary>
+    <p class="en">It is the plot's area exactly as stored in APCRDA's dataset, shown without any unit conversion. Treat it as a reference figure, not a survey measurement.</p>
+    <p class="te">ఇది APCRDA డేటాసెట్‌లో నిల్వ చేసిన విధంగా ప్లాట్ విస్తీర్ణం, ఎలాంటి యూనిట్ మార్పిడి లేకుండా చూపబడుతుంది. దీన్ని రిఫరెన్స్ గణాంకంగా భావించండి.</p>
+  </details>
+
+  <details>
+    <summary><span class="en">Does the app track me or store my data?</span><span class="te">యాప్ నన్ను ట్రాక్ చేస్తుందా?</span></summary>
+    <p class="en">Saved plots stay on your own device only. Location, when you use "Find my plot", is used in your browser to locate you and is not sent anywhere. See the <a href="about.html">data policy</a> for details.</p>
+    <p class="te">సేవ్ చేసిన ప్లాట్లు మీ పరికరంలోనే ఉంటాయి. "నా ప్లాట్‌ను కనుగొను" ఉపయోగించినప్పుడు లొకేషన్ మీ బ్రౌజర్‌లోనే ఉపయోగించబడుతుంది, ఎక్కడికీ పంపబడదు.</p>
+  </details>
+
+  <p class="foot">
+    <span class="en">Still stuck? See the <a href="about.html">About &amp; data policy</a> page, or verify directly at <a href="https://gis.apcrda.org/lps/index.html" target="_blank" rel="noopener">the official APCRDA LPS map</a>.</span>
+    <span class="te">ఇంకా సమస్యా? <a href="about.html">About &amp; data policy</a> పేజీ చూడండి, లేదా <a href="https://gis.apcrda.org/lps/index.html" target="_blank" rel="noopener">అధికారిక APCRDA LPS మ్యాప్</a>‌లో నిర్ధారించుకోండి.</span>
+  </p>
+</main>
+<script>
+  (function () {
+    var saved = localStorage.getItem("lps-lang");
+    if (saved === "te") document.body.classList.add("lang-te");
+    var btn = document.getElementById("langtoggle");
+    function sync() {
+      var te = document.body.classList.contains("lang-te");
+      btn.textContent = te ? "English" : "\u0c24\u0c46\u0c32\u0c41\u0c17\u0c41";
+    }
+    sync();
+    btn.addEventListener("click", function () {
+      document.body.classList.toggle("lang-te");
+      try { localStorage.setItem("lps-lang", document.body.classList.contains("lang-te") ? "te" : "en"); } catch (e) {}
+      sync();
+    });
+  })();
+</script>
+</body>
+</html>

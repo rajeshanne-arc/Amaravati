@@ -54,7 +54,7 @@
   #status.wait  { color: #EED9A0; border-color: #B99A4E; }
   #status.live  { color: #A8E5B2; border-color: #4E9B5E; }
   #status.error { color: #F4B7A9; border-color: var(--accent); }
-  .headsearch { position: relative; margin-left: auto; }
+    .headsearch { position: relative; margin-left: auto; }
   .headsearch input {
     width: min(300px, 44vw); padding: 7px 11px; border-radius: 8px; border: 1px solid #3a4a42;
     background: #22312B; color: #F2EFE6; font: 500 12.5px 'IBM Plex Sans', sans-serif; outline: none;
@@ -200,6 +200,12 @@
     display: flex; align-items: center; justify-content: center;
     font: 700 12px 'IBM Plex Sans', sans-serif; cursor: pointer;
   }
+  #helplink {
+    display: inline-flex; align-items: center; text-decoration: none;
+    background: #22312B; color: #F2EFE6; border: 1px solid #3a4a42; border-radius: 8px;
+    padding: 5px 10px; font: 600 11.5px 'IBM Plex Sans', sans-serif; cursor: pointer; white-space: nowrap;
+  }
+  #helplink:hover { background: #2b3d35; }
   #langbtn {
     background: #22312B; color: #F2EFE6; border: 1px solid #3a4a42; border-radius: 8px;
     padding: 5px 10px; font: 600 11.5px 'IBM Plex Sans', sans-serif; cursor: pointer; white-space: nowrap;
@@ -274,6 +280,21 @@
     box-shadow: 0 4px 14px rgba(0,0,0,.25); writing-mode: vertical-rl; text-orientation: mixed;
   }
   body.collapsed #reopenBtn { display: flex; }
+  #legendpanel {
+    position: absolute; top: 12px; right: 12px; z-index: 1300; width: 232px;
+    max-height: 70vh; overflow-y: auto;
+    background: var(--white); border: 1px solid var(--line); border-radius: 12px;
+    box-shadow: 0 12px 32px rgba(0,0,0,.22);
+  }
+  #legendtitle { font: 600 13px 'IBM Plex Sans', sans-serif; color: var(--ink); }
+  #legendclose { background: none; border: none; font-size: 15px; cursor: pointer; color: #8a8474; padding: 0 2px; }
+  #legendbody { padding: 4px 0 8px; }
+  .leg-group { padding: 8px 12px 3px; font: 600 10.5px 'IBM Plex Sans', sans-serif; letter-spacing: .04em; text-transform: uppercase; color: #8a8474; }
+  .leg-row { display: flex; align-items: center; gap: 8px; padding: 3px 12px; }
+  .leg-sw { width: 15px; height: 15px; border-radius: 3px; border: 1px solid rgba(0,0,0,.2); flex: none; }
+  .leg-code { font: 600 11px 'IBM Plex Mono', monospace; color: var(--ink); width: 22px; flex: none; }
+  .leg-name { font-size: 12px; color: var(--ink-2); }
+  @media print { #legendpanel, #btnLegend { display: none !important; } }
   #lyrhint { padding: 2px 14px 8px; font-size: 11px; color: #b3ada0; }
   #swipehandle {
     position: absolute; top: 0; bottom: 0; left: 50%; width: 3px; margin-left: -1.5px;
@@ -368,6 +389,7 @@
   </div>
   <span id="status" class="wait" aria-live="polite">CONNECTING…</span>
   <button id="mybtn" type="button" aria-label="My saved plots">&#9733; My plots</button>
+  <a id="helplink" href="help.html" aria-label="Help and FAQ">? Help</a>
   <button id="langbtn" type="button" aria-label="Switch language / భాష మార్చండి">తెలుగు</button>
   <div class="headsearch">
     <input id="q" placeholder="Plot code, number or allottee name…  ( / )" autocomplete="off" />
@@ -405,6 +427,11 @@
       <button id="btnSat" type="button" title="Satellite view" aria-label="Toggle satellite view">&#x1F6F0;</button>
       <button id="btnSwipe" type="button" title="Compare with satellite" aria-label="Compare map with satellite">&#x21D4;</button>
       <button id="btnLayers" type="button" title="Map layers" aria-label="Map layers">&#x2630;</button>
+      <button id="btnLegend" type="button" title="Legend" aria-label="Zone colour legend">&#x1F5FA;</button>
+    </div>
+    <div id="legendpanel" role="dialog" aria-label="Zone legend" style="display:none">
+      <div id="lyrhead"><span id="legendtitle">Zone legend</span><button id="legendclose" type="button" aria-label="Close">&#x2715;</button></div>
+      <div id="legendbody"></div>
     </div>
     <div id="swipehandle" aria-hidden="true"><span>&#x2039;&nbsp;&#x203A;</span></div>
     <div id="lyrpanel" role="dialog" aria-label="Map layers" style="display:none">
