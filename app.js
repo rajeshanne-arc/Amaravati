@@ -256,6 +256,10 @@ const I18N = {
     noLocation: "This plot has no mapped location.",
     measureT: "Measure distance", measureOffT: "Close measure", measureHint: "Tap points on the map to measure",
     measureDist: "Distance", measureArea: "Area", measureClear: "Clear", measureDone: "Done",
+    modePlots: "Returnable plots", modeAlloc: "Allocated lands",
+    allocParcels: "parcels", allocEntities: "entities",
+    allocLoading: "Loading allocated lands\u2026",
+    allocSearchPh: "Search company, institution, village\u2026",
     lyrTitle: "Map layers", lyrHint: "APCRDA reference layers \u00b7 tap to overlay", lyrLoadingOne: "loading\u2026", lyrFail: "couldn't load",
     areaEyebrow: "LAND-USE AREA — NOT A RETURNABLE PLOT", areaTitle: "Area", areaNote: "Zone coverage, roads, unallocated and institutional lands are viewable here but are not individual returnable plots, so they have no boundaries walk or change history.", zoomArea: "Zoom to this area",
     askBtn: "Ask AI", askPh: "Ask about plots, owners, villages\u2026", askSend: "Ask", askThinking: "Thinking\u2026",
@@ -311,6 +315,10 @@ const I18N = {
     noLocation: "\u0c08 \u0c2a\u0c4d\u0c32\u0c3e\u0c1f\u0c4d\u200c\u0c15\u0c41 \u0c2e\u0c4d\u0c2f\u0c3e\u0c2a\u0c4d \u0c32\u0c4b\u0c15\u0c47\u0c37\u0c28\u0c4d \u0c32\u0c47\u0c26\u0c41.",
     measureT: "\u0c26\u0c42\u0c30\u0c02 \u0c15\u0c4a\u0c32\u0c35\u0c02\u0c21\u0c3f", measureOffT: "\u0c2e\u0c42\u0c38\u0c3f\u0c35\u0c47\u0c2f\u0c3f", measureHint: "\u0c15\u0c4a\u0c32\u0c35\u0c21\u0c3e\u0c28\u0c3f\u0c15\u0c3f \u0c2e\u0c4d\u0c2f\u0c3e\u0c2a\u0c4d\u200c\u0c2a\u0c48 \u0c2a\u0c3e\u0c2f\u0c3f\u0c02\u0c1f\u0c4d\u0c32\u0c41 \u0c28\u0c4a\u0c15\u0c4d\u0c15\u0c02\u0c21\u0c3f",
     measureDist: "\u0c26\u0c42\u0c30\u0c02", measureArea: "\u0c35\u0c3f\u0c38\u0c4d\u0c24\u0c40\u0c30\u0c4d\u0c23\u0c02", measureClear: "\u0c15\u0c4d\u0c32\u0c3f\u0c2f\u0c30\u0c4d", measureDone: "\u0c2a\u0c42\u0c30\u0c4d\u0c24\u0c2f\u0c3f\u0c02\u0c26\u0c3f",
+    modePlots: "\u0c30\u0c3f\u0c1f\u0c30\u0c4d\u0c28\u0c2c\u0c41\u0c32\u0c4d \u0c2a\u0c4d\u0c32\u0c3e\u0c1f\u0c4d\u0c32\u0c41", modeAlloc: "\u0c15\u0c47\u0c1f\u0c3e\u0c2f\u0c3f\u0c02\u0c1a\u0c3f\u0c28 \u0c2d\u0c42\u0c2e\u0c41\u0c32\u0c41",
+    allocParcels: "\u0c2a\u0c4d\u0c32\u0c3e\u0c1f\u0c4d\u0c32\u0c41", allocEntities: "\u0c38\u0c02\u0c38\u0c4d\u0c25\u0c32\u0c41",
+    allocLoading: "\u0c15\u0c47\u0c1f\u0c3e\u0c2f\u0c3f\u0c02\u0c1a\u0c3f\u0c28 \u0c2d\u0c42\u0c2e\u0c41\u0c32\u0c41 \u0c32\u0c4b\u0c21\u0c35\u0c41\u0c24\u0c4b\u0c02\u0c26\u0c3f\u2026",
+    allocSearchPh: "\u0c15\u0c02\u0c2a\u0c46\u0c28\u0c40, \u0c38\u0c02\u0c38\u0c4d\u0c25, \u0c17\u0c4d\u0c30\u0c3e\u0c2e\u0c02 \u0c35\u0c46\u0c24\u0c15\u0c02\u0c21\u0c3f\u2026",
     lyrTitle: "\u0c2e\u0c4d\u0c2f\u0c3e\u0c2a\u0c4d \u0c32\u0c47\u0c2f\u0c30\u0c4d\u0c32\u0c41", lyrHint: "APCRDA \u0c30\u0c3f\u0c2b\u0c30\u0c46\u0c28\u0c4d\u0c38\u0c4d \u0c32\u0c47\u0c2f\u0c30\u0c4d\u0c32\u0c41", lyrLoadingOne: "\u0c32\u0c4b\u0c21\u0c4d \u0c05\u0c35\u0c41\u0c24\u0c4b\u0c02\u0c26\u0c3f\u2026", lyrFail: "\u0c32\u0c4b\u0c21\u0c4d \u0c15\u0c3e\u0c32\u0c47\u0c26\u0c41",
     areaEyebrow: "\u0c2d\u0c42\u0c35\u0c3f\u0c28\u0c3f\u0c2f\u0c4b\u0c17 \u0c2a\u0c4d\u0c30\u0c3e\u0c02\u0c24\u0c02 \u2014 \u0c30\u0c3f\u0c1f\u0c30\u0c4d\u0c28\u0c2c\u0c41\u0c32\u0c4d \u0c2a\u0c4d\u0c32\u0c3e\u0c1f\u0c4d \u0c15\u0c3e\u0c26\u0c41", areaTitle: "\u0c2a\u0c4d\u0c30\u0c3e\u0c02\u0c24\u0c02", areaNote: "\u0c1c\u0c4b\u0c28\u0c4d \u0c15\u0c35\u0c30\u0c47\u0c1c\u0c4d, \u0c30\u0c4b\u0c21\u0c4d\u0c32\u0c41, \u0c15\u0c47\u0c1f\u0c3e\u0c2f\u0c3f\u0c02\u0c1a\u0c28\u0c3f \u0c2d\u0c42\u0c2e\u0c41\u0c32\u0c41 \u0c07\u0c15\u0c4d\u0c15\u0c21 \u0c1a\u0c42\u0c21\u0c35\u0c1a\u0c4d\u0c1a\u0c41, \u0c15\u0c3e\u0c28\u0c40 \u0c05\u0c35\u0c3f \u0c35\u0c4d\u0c2f\u0c15\u0c4d\u0c24\u0c3f\u0c17\u0c24 \u0c2a\u0c4d\u0c32\u0c3e\u0c1f\u0c4d\u0c32\u0c41 \u0c15\u0c3e\u0c35\u0c41.", zoomArea: "\u0c08 \u0c2a\u0c4d\u0c30\u0c3e\u0c02\u0c24\u0c3e\u0c28\u0c3f\u0c15\u0c3f \u0c1c\u0c42\u0c2e\u0c4d",
     askBtn: "AI \u0c28\u0c3f \u0c05\u0c21\u0c17\u0c02\u0c21\u0c3f", askPh: "\u0c2a\u0c4d\u0c32\u0c3e\u0c1f\u0c4d\u0c32\u0c41, \u0c2f\u0c1c\u0c2e\u0c3e\u0c28\u0c41\u0c32\u0c41, \u0c17\u0c4d\u0c30\u0c3e\u0c2e\u0c3e\u0c32 \u0c17\u0c41\u0c30\u0c3f\u0c02\u0c1a\u0c3f \u0c05\u0c21\u0c17\u0c02\u0c21\u0c3f\u2026", askSend: "\u0c05\u0c21\u0c17\u0c02\u0c21\u0c3f", askThinking: "\u0c06\u0c32\u0c4b\u0c1a\u0c3f\u0c38\u0c4d\u0c24\u0c4b\u0c02\u0c26\u0c3f\u2026",
@@ -345,6 +353,7 @@ const state = {
   snapVersion: "",      // snapshot timestamp, used to version shard requests
   changes: null,        // permanent change log: { map: id -> [entries], since }
   geoOk: false,         // snapshot id scheme matches this app -> shards usable
+  regMode: "plots",     // "plots" (returnable) or "alloc" (allocated lands)
 };
 
 /* ---------------- map ---------------- */
@@ -518,6 +527,7 @@ function buildVillageSelect() {
 }
 
 function applyFilters() {
+  if (state.regMode === "alloc") { applyAllocFilters(); return; }
   const { q, village, family, minExt } = state.filters;
   const ql = q.trim().toLowerCase();
   state.filtered = state.plots.filter((p) => {
@@ -546,6 +556,117 @@ function applyFilters() {
     (totalExt ? ` · <b>${inr(Math.round(totalExt))}</b> ${t("totalExtent")}` : "");
   renderTable();
 }
+
+/* ---------------- allocated lands (named entity allotments) ---------------- */
+// A parcel is an "allocated land" when its allottee is a company, institution,
+// university, trust or similar entity — not a farmer. Matched on distinctive
+// tokens in the allottee name.
+const ENTITY_RE = /\b(ltd|limited|pvt|private|univ|university|institute|institution|college|trust|foundation|society|corporation|company|enterprises?|industries|hotels?|resorts?|estates?|constructions?|infra|technolog|L&T|NID|LVPEI|SRM|BITS|academy)\b/i;
+function isEntityOwner(name) { return !!name && ENTITY_RE.test(name); }
+const alloc = { loaded: false, loading: false, plots: [] };
+
+async function loadAllocated() {
+  if (alloc.loaded || alloc.loading) return;
+  alloc.loading = true;
+  // start from plots already in memory that have entity allottees
+  const seen = new Map();
+  for (const p of state.plots) {
+    if (isEntityOwner(p.farmer)) {
+      const k = (p.farmer || "") + "#" + p.village + "#" + (p.no ?? "");
+      if (!seen.has(k)) seen.set(k, { id: p.id, oid: p.oid, farmer: p.farmer, sym: p.sym, ext: p.ext, village: p.village, no: p.no, code: p.code, reg: p.reg });
+    }
+  }
+  // also fetch entity parcels straight from APCRDA in case any aren't in the snapshot
+  try {
+    const clause = "(" + ["LTD","Limited","Pvt","Universit","Institute","INSTITUTE","Trust",
+      "Foundation","Society","L&T","Corporation","Company","Enterprises","Industries","Hotels"]
+      .map((w) => "farmer_n LIKE '%" + w + "%'").join(" OR ") + ")";
+    await new Promise((res) => {
+      L.esri.query({ url: CONFIG.SERVICE + "/" + CONFIG.PLOT_LAYER })
+        .where(clause).returnGeometry(false).limit(600)
+        .run((err, fc) => {
+          if (!err && fc) {
+            for (const f of fc.features) {
+              const a = f.properties;
+              const rec = normalize(a);
+              if (!isEntityOwner(rec.farmer)) continue;
+              const k = (rec.farmer || "") + "#" + rec.village + "#" + (rec.no ?? "");
+              if (!seen.has(k)) seen.set(k, { id: rec.id, oid: rec.oid, farmer: rec.farmer, sym: rec.sym, ext: rec.ext, village: rec.village, no: rec.no, code: rec.code, reg: rec.reg });
+            }
+          }
+          res();
+        });
+    });
+  } catch (_) { /* offline: fall back to in-memory matches only */ }
+  alloc.plots = [...seen.values()];
+  alloc.loaded = true;
+  alloc.loading = false;
+}
+
+function applyAllocFilters() {
+  const { q, village } = state.filters;
+  const ql = q.trim().toLowerCase();
+  let list = alloc.plots.filter((p) => {
+    if (village !== "__ALL__" && p.village !== village) return false;
+    if (ql) {
+      const hay = ((p.farmer || "") + " " + p.village + " " + (p.sym || "") + " " + (p.code || "") + " " + (p.no ?? "")).toLowerCase();
+      if (!hay.includes(ql)) return false;
+    }
+    return true;
+  });
+  list.sort((a, b) => String(a.farmer || "").localeCompare(String(b.farmer || "")));
+  state.filtered = list;
+  const totalExt = list.reduce((s, p) => s + (typeof p.ext === "number" ? p.ext : 0), 0);
+  const entities = new Set(list.map((p) => ownerKey(p.farmer))).size;
+  $("stats").innerHTML =
+    `<b>${inr(list.length)}</b> ${t("allocParcels")}` +
+    ` · <b>${inr(entities)}</b> ${t("allocEntities")}` +
+    (totalExt ? ` · <b>${inr(Math.round(totalExt))}</b> ${t("totalExtent")}` : "");
+  renderAllocTable();
+}
+
+function renderAllocTable() {
+  $("thead").innerHTML = "";
+  const rows = state.filtered;
+  if (!rows.length) {
+    $("tlist").innerHTML = `<div class="empty">${esc(alloc.loading ? t("allocLoading") : t("noMatch"))}</div>`;
+    return;
+  }
+  $("tlist").innerHTML = rows.slice(0, 400).map((p) =>
+    `<button type="button" class="ownerplot allocrow" data-code="${esc(p.id)}">` +
+      `<span class="dot" style="background:${zoneColor(p.sym)}"></span>` +
+      `<span class="op-owner">${esc(entityShort(p.farmer))}</span>` +
+      `<span class="op-vil">${esc(p.village)}</span>` +
+      `<span class="op-ext">${p.ext != null ? inr(Math.round(p.ext)) : "—"}</span>` +
+    `</button>`
+  ).join("") + (rows.length > 400 ? `<div class="s-note">+ ${inr(rows.length - 400)} …</div>` : "");
+  $("tlist").querySelectorAll(".ownerplot").forEach((b) => b.addEventListener("click", () => openPlot(b.dataset.code)));
+}
+function entityShort(name) {
+  // trim the "Rep by …/Phase-…" tails APCRDA appends, for a clean list
+  return String(name || "").replace(/\s+(rep\b|represented|phase\b|director\b|managing\b).*$/i, "").trim() || name;
+}
+
+async function setRegMode(mode) {
+  state.regMode = mode;
+  $("modePlots").classList.toggle("on", mode === "plots");
+  $("modeAlloc").classList.toggle("on", mode === "alloc");
+  $("fFamily").style.display = mode === "alloc" ? "none" : "";
+  $("q").placeholder = mode === "alloc" ? t("allocSearchPh") : t("searchPh");
+  if (mode === "alloc") {
+    if (!alloc.loaded) {
+      $("stats").innerHTML = esc(t("allocLoading"));
+      $("tlist").innerHTML = `<div class="empty">${esc(t("allocLoading"))}</div>`;
+      await loadAllocated();
+    }
+    applyAllocFilters();
+  } else {
+    buildChips();
+    applyFilters();
+  }
+}
+$("modePlots").addEventListener("click", () => setRegMode("plots"));
+$("modeAlloc").addEventListener("click", () => setRegMode("alloc"));
 
 /* family chips (rebuilt on language change) */
 function buildChips() {
@@ -1812,6 +1933,8 @@ function applyLang() {
   $("btnLayers").title = t("lyrTitle");
   $("btnLegend").title = t("legendTitle");
   $("btnMeasure").title = measure.on ? t("measureOffT") : t("measureT");
+  $("modePlots").textContent = t("modePlots");
+  $("modeAlloc").textContent = t("modeAlloc");
   $("collapseBtn").title = document.body.classList.contains("collapsed") ? t("expandT") : t("collapseT");
   const wt = $("wtitle"); if (wt) { wt.textContent = t("welcomeTitle"); $("wbody").textContent = t("welcomeBody"); $("wgo").textContent = t("welcomeBtn"); }
   applyFilters();
