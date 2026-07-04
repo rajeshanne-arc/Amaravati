@@ -329,9 +329,13 @@ function showLiveHelp() {
 function normalize(a) {
   const rawCode = (a.plot_code || "").trim();
   const rawReg = (a.regcode || "").trim();
-  // plot_code is blank on ~16k plots; fall back to regcode, then a synthetic id,
-  // so every plot has a stable, unique key and none get dropped from the register.
-  const id = rawCode || rawReg || (a.ESRI_OID != null ? "oid-" + a.ESRI_OID : "");
+  // IDENTITY RULE: APCRDA sometimes writes zone labels ("Residential Vacant",
+  // "15.6 mtr Road") into plot_code, and the same code can repeat across
+  // villages — so plot_code is DISPLAY ONLY and never identity. The
+  // registration code is sector-qualified and unique per plot; records
+  // without a valid one get a synthetic id from the server's object id.
+  // (Must stay in lockstep with deriveId() in scripts/fetch-snapshot.mjs.)
+  const id = looksLikeCode(rawReg) ? rawReg : (a.ESRI_OID != null ? "oid-" + a.ESRI_OID : "");
   return {
     id, code: rawCode, no: a.plot_no ?? null, sym: a.symbology || "",
     village: a.lpsvillage || "—", twp: a.township, sec: a.sector, col: a.colony, blk: a.block,
@@ -345,10 +349,11 @@ function normalize(a) {
 
 function ingest(list, generated) {
   const all = list.map(normalize).filter((p) => p.id)
-    // zone-coverage records (village planning areas, reserves, roads — blank
-    // code, plot number 0 or below) aren't plots; keep them out of the
-    // register, stats, search and owner index entirely
-    .filter((p) => p.code || (p.reg && Number(p.no) > 0));
+    // Only genuine plots enter the register: a positive plot number AND a
+    // code-shaped code or registration code. This excludes zone-coverage
+    // records and the label-coded slivers ("Residential Vacant",
+    // "15.6 mtr Road") that APCRDA stores in the same layer.
+    .filter((p) => Number(p.no) > 0 && (looksLikeCode(p.code) || looksLikeCode(p.reg)));
   // APCRDA's layer stores some plots as several identical overlapping records.
   // Collapse rows that match on everything the user sees, so each real plot
   // appears once. Rows sharing a code but differing (e.g. different allottee)
@@ -364,7 +369,7 @@ function ingest(list, generated) {
   state.dupCount = dupes;
   state.byCode = new Map();
   for (const p of state.plots) {
-    if (p.code && !state.byCode.has(p.code)) state.byCode.set(p.code, p);
+    if (p.code && looksLikeCode(p.code) && !state.byCode.has(p.code)) state.byCode.set(p.code, p);
     state.byCode.set(p.id, p); // id is always present and unique
   }
   state.byReg = new Map();
@@ -724,7 +729,7 @@ function openPlot(key) {
   renderTable();
   const rec = state.byCode.get(key) || null;
   if (rec) {
-    updateURL({ plot: rec.code || rec.id });
+    updateURL({ plot: rec.id });
     // instant offline outline; if this village's shard isn't loaded yet,
     // fetch it in the background and draw when it arrives
     if (!highlightLocal(rec, true) && rec.village) {
@@ -733,12 +738,13 @@ function openPlot(key) {
       });
     }
   }
-  const liveCode = rec ? rec.code : key; // blank-code plots can't be queried by plot_code
   const liveReg = rec ? rec.reg : "";
+  const liveCode = rec ? rec.code : key;
   if (state.live && (liveCode || liveReg)) {
-    const clause = liveCode
-      ? `plot_code = '${liveCode.replace(/'/g, "''")}'`
-      : `regcode = '${liveReg.replace(/'/g, "''")}'`;
+    // regcode is unique per plot; plot_code can repeat, so it's only a fallback
+    const clause = looksLikeCode(liveReg)
+      ? `regcode = '${liveReg.replace(/'/g, "''")}'`
+      : `plot_code = '${liveCode.replace(/'/g, "''")}'`;
     L.esri.query(esriOpts({ url: CONFIG.SERVICE + "/" + CONFIG.PLOT_LAYER }))
       .where(clause).limit(1).returnGeometry(true)
       .run((err, fc) => {
@@ -891,7 +897,7 @@ function renderCard(rec, geom) {
     if (geom) { try { map.fitBounds(geom.getBounds().pad(0.8), { maxZoom: 20 }); } catch (_) {} }
     else if (!highlightLocal(rec, true) && state.live && rec.id) openPlot(rec.id);
   });
-  $("actShare").addEventListener("click", () => copyShare($("actShare"), { plot: rec.code || rec.id }));
+  $("actShare").addEventListener("click", () => copyShare($("actShare"), { plot: rec.id }));
   $("actSave").addEventListener("click", () => {
     toggleSaved(rec.id);
     const b = $("actSave");
