@@ -568,13 +568,15 @@ const alloc = { loaded: false, loading: false, plots: [] };
 async function loadAllocated() {
   if (alloc.loaded || alloc.loading) return;
   alloc.loading = true;
-  // start from plots already in memory that have entity allottees
+  // Dedup on PLOT identity (registration code, else plot_code+village), so an
+  // entity's several distinct parcels are each kept once, while APCRDA's
+  // repeated rows of the same parcel collapse. Owner+plot_no is NOT a valid
+  // key — different sectors reuse plot numbers.
   const seen = new Map();
+  const keyOf = (r) => (looksLikeCode(r.reg) ? r.reg : ((r.code || "") + "#" + r.village)) || (r.id);
+  const add = (r) => { const k = keyOf(r); if (!seen.has(k)) seen.set(k, r); };
   for (const p of state.plots) {
-    if (isEntityOwner(p.farmer)) {
-      const k = (p.farmer || "") + "#" + p.village + "#" + (p.no ?? "");
-      if (!seen.has(k)) seen.set(k, { id: p.id, oid: p.oid, farmer: p.farmer, sym: p.sym, ext: p.ext, village: p.village, no: p.no, code: p.code, reg: p.reg });
-    }
+    if (isEntityOwner(p.farmer)) add({ id: p.id, oid: p.oid, farmer: p.farmer, sym: p.sym, ext: p.ext, village: p.village, no: p.no, code: p.code, reg: p.reg });
   }
   // also fetch entity parcels straight from APCRDA in case any aren't in the snapshot
   try {
@@ -587,11 +589,9 @@ async function loadAllocated() {
         .run((err, fc) => {
           if (!err && fc) {
             for (const f of fc.features) {
-              const a = f.properties;
-              const rec = normalize(a);
+              const rec = normalize(f.properties || {});
               if (!isEntityOwner(rec.farmer)) continue;
-              const k = (rec.farmer || "") + "#" + rec.village + "#" + (rec.no ?? "");
-              if (!seen.has(k)) seen.set(k, { id: rec.id, oid: rec.oid, farmer: rec.farmer, sym: rec.sym, ext: rec.ext, village: rec.village, no: rec.no, code: rec.code, reg: rec.reg });
+              add({ id: rec.id, oid: rec.oid, farmer: rec.farmer, sym: rec.sym, ext: rec.ext, village: rec.village, no: rec.no, code: rec.code, reg: rec.reg });
             }
           }
           res();
