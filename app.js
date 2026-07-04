@@ -69,7 +69,39 @@ function parsePlotCoord(str) {
     const e = parseFloat(c[0]), n = parseFloat(c[1]);
     if (Number.isFinite(e) && Number.isFinite(n)) pts.push([e, n]);
   }
-  return pts.length ? pts : null;
+  if (!pts.length) return null;
+  return fixRing(pts);
+}
+// Some APCRDA records list a plot's corners in scan order (top-left,
+// top-right, bottom-left, bottom-right) instead of walking the perimeter.
+// Drawn as-is that crosses itself into an hourglass and breaks the
+// point-in-polygon test. If the ring self-intersects, re-order the
+// vertices by angle around the centroid; rings that are already simple
+// (including genuine L-shapes) pass through untouched.
+function ringSelfIntersects(pts) {
+  const ring = (pts.length > 1 && pts[0][0] === pts[pts.length - 1][0] && pts[0][1] === pts[pts.length - 1][1])
+    ? pts.slice(0, -1) : pts;
+  const n = ring.length;
+  if (n < 4) return false;
+  const ccw = (p, q, r) => (r[1] - p[1]) * (q[0] - p[0]) - (q[1] - p[1]) * (r[0] - p[0]);
+  const cross = (a, b, c, d) => ccw(a, c, d) * ccw(b, c, d) < 0 && ccw(a, b, c) * ccw(a, b, d) < 0;
+  for (let i = 0; i < n; i++) {
+    for (let j = i + 2; j < n; j++) {
+      if (i === 0 && j === n - 1) continue; // adjacent via wrap-around
+      if (cross(ring[i], ring[(i + 1) % n], ring[j], ring[(j + 1) % n])) return true;
+    }
+  }
+  return false;
+}
+function fixRing(pts) {
+  if (!ringSelfIntersects(pts)) return pts;
+  const ring = (pts.length > 1 && pts[0][0] === pts[pts.length - 1][0] && pts[0][1] === pts[pts.length - 1][1])
+    ? pts.slice(0, -1) : pts.slice();
+  let ce = 0, cn = 0;
+  for (const [e, n] of ring) { ce += e; cn += n; }
+  ce /= ring.length; cn /= ring.length;
+  ring.sort((a, b) => Math.atan2(a[1] - cn, a[0] - ce) - Math.atan2(b[1] - cn, b[0] - ce));
+  return ring;
 }
 function plotLatLngs(rec) {
   if (!rec || !ensureProj()) return null;
