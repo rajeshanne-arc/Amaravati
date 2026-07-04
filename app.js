@@ -227,8 +227,8 @@ const I18N = {
     printRec: "Print record",
     recentChanges: "Recent changes", feedTitle: "RECENT CHANGES — ALL PLOTS", feedEmpty: "No changes recorded yet. The nightly comparison will list ownership, zone and registration changes here, permanently.",
     swipeT: "Compare with satellite", swipeOffT: "Turn off compare",
-    lyrTitle: "Map layers", lyrLoading: "Finding layers\u2026", lyrLoadingOne: "loading\u2026",
-    lyrNone: "Extra layers are unavailable right now.", lyrNA: "unavailable", lyrFail: "couldn't load",
+    collapseT: "Hide list", expandT: "Show list",
+    lyrTitle: "Map layers", lyrHint: "APCRDA reference layers \u00b7 tap to overlay", lyrLoadingOne: "loading\u2026", lyrFail: "couldn't load",
     areaEyebrow: "LAND-USE AREA — NOT A RETURNABLE PLOT", areaTitle: "Area", areaNote: "Zone coverage, roads, unallocated and institutional lands are viewable here but are not individual returnable plots, so they have no boundaries walk or change history.", zoomArea: "Zoom to this area",
     askBtn: "Ask AI", askPh: "Ask about plots, owners, villages\u2026", askSend: "Ask", askThinking: "Thinking\u2026",
     askOffline: "The AI assistant isn't set up yet. Deploy worker/rag-assistant.js to Cloudflare (instructions inside the file) and set CONFIG.ASK_ENDPOINT in app.js.",
@@ -276,8 +276,8 @@ const I18N = {
     printRec: "రికార్డు ప్రింట్",
     recentChanges: "ఇటీవలి మార్పులు", feedTitle: "ఇటీవలి మార్పులు — అన్ని ప్లాట్లు", feedEmpty: "ఇంకా మార్పులు నమోదు కాలేదు. రాత్రి పోలిక ద్వారా యాజమాన్య, జోన్, రిజిస్ట్రేషన్ మార్పులు ఇక్కడ శాశ్వతంగా కనిపిస్తాయి.",
     swipeT: "\u0c36\u0c3e\u0c1f\u0c3f\u0c32\u0c48\u0c1f\u0c4d\u200c\u0c24\u0c4b \u0c2a\u0c4b\u0c32\u0c4d\u0c1a\u0c02\u0c21\u0c3f", swipeOffT: "\u0c2a\u0c4b\u0c32\u0c3f\u0c15 \u0c06\u0c2a\u0c02\u0c21\u0c3f",
-    lyrTitle: "\u0c2e\u0c4d\u0c2f\u0c3e\u0c2a\u0c4d \u0c32\u0c47\u0c2f\u0c30\u0c4d\u0c32\u0c41", lyrLoading: "\u0c32\u0c47\u0c2f\u0c30\u0c4d\u0c32\u0c41 \u0c35\u0c46\u0c24\u0c41\u0c15\u0c41\u0c24\u0c4b\u0c02\u0c26\u0c3f\u2026", lyrLoadingOne: "\u0c32\u0c4b\u0c21\u0c35\u0c941\u0c24\u0c4b\u0c02\u0c26\u0c3f\u2026",
-    lyrNone: "\u0c05\u0c26\u0c28\u0c2a\u0c41 \u0c32\u0c47\u0c2f\u0c30\u0c4d\u0c32\u0c41 \u0c07\u0c2a\u0c4d\u0c2a\u0c41\u0c21\u0c41 \u0c05\u0c02\u0c26\u0c41\u0c2c\u0c3e\u0c1f\u0c41\u0c32\u0c4b \u0c32\u0c47\u0c35\u0c41.", lyrNA: "\u0c05\u0c02\u0c26\u0c41\u0c2c\u0c3e\u0c1f\u0c41\u0c32\u0c4b \u0c32\u0c47\u0c26\u0c41", lyrFail: "\u0c32\u0c4b\u0c21\u0c4d \u0c15\u0c3e\u0c32\u0c47\u0c26\u0c41",
+    collapseT: "\u0c1c\u0c3e\u0c2c\u0c3f\u0c24\u0c3e \u0c26\u0c3e\u0c1a\u0c41", expandT: "\u0c1c\u0c3e\u0c2c\u0c3f\u0c24\u0c3e \u0c1a\u0c42\u0c2a\u0c41",
+    lyrTitle: "\u0c2e\u0c4d\u0c2f\u0c3e\u0c2a\u0c4d \u0c32\u0c47\u0c2f\u0c30\u0c4d\u0c32\u0c41", lyrHint: "APCRDA \u0c30\u0c3f\u0c2b\u0c30\u0c46\u0c28\u0c4d\u0c38\u0c4d \u0c32\u0c47\u0c2f\u0c30\u0c4d\u0c32\u0c41", lyrLoadingOne: "\u0c32\u0c4b\u0c21\u0c4d \u0c05\u0c35\u0c41\u0c24\u0c4b\u0c02\u0c26\u0c3f\u2026", lyrFail: "\u0c32\u0c4b\u0c21\u0c4d \u0c15\u0c3e\u0c32\u0c47\u0c26\u0c41",
     areaEyebrow: "\u0c2d\u0c42\u0c35\u0c3f\u0c28\u0c3f\u0c2f\u0c4b\u0c17 \u0c2a\u0c4d\u0c30\u0c3e\u0c02\u0c24\u0c02 \u2014 \u0c30\u0c3f\u0c1f\u0c30\u0c4d\u0c28\u0c2c\u0c41\u0c32\u0c4d \u0c2a\u0c4d\u0c32\u0c3e\u0c1f\u0c4d \u0c15\u0c3e\u0c26\u0c41", areaTitle: "\u0c2a\u0c4d\u0c30\u0c3e\u0c02\u0c24\u0c02", areaNote: "\u0c1c\u0c4b\u0c28\u0c4d \u0c15\u0c35\u0c30\u0c47\u0c1c\u0c4d, \u0c30\u0c4b\u0c21\u0c4d\u0c32\u0c41, \u0c15\u0c47\u0c1f\u0c3e\u0c2f\u0c3f\u0c02\u0c1a\u0c28\u0c3f \u0c2d\u0c42\u0c2e\u0c41\u0c32\u0c41 \u0c07\u0c15\u0c4d\u0c15\u0c21 \u0c1a\u0c42\u0c21\u0c35\u0c1a\u0c4d\u0c1a\u0c41, \u0c15\u0c3e\u0c28\u0c40 \u0c05\u0c35\u0c3f \u0c35\u0c4d\u0c2f\u0c15\u0c4d\u0c24\u0c3f\u0c17\u0c24 \u0c2a\u0c4d\u0c32\u0c3e\u0c1f\u0c4d\u0c32\u0c41 \u0c15\u0c3e\u0c35\u0c41.", zoomArea: "\u0c08 \u0c2a\u0c4d\u0c30\u0c3e\u0c02\u0c24\u0c3e\u0c28\u0c3f\u0c15\u0c3f \u0c1c\u0c42\u0c2e\u0c4d",
     askBtn: "AI \u0c28\u0c3f \u0c05\u0c21\u0c17\u0c02\u0c21\u0c3f", askPh: "\u0c2a\u0c4d\u0c32\u0c3e\u0c1f\u0c4d\u0c32\u0c41, \u0c2f\u0c1c\u0c2e\u0c3e\u0c28\u0c41\u0c32\u0c41, \u0c17\u0c4d\u0c30\u0c3e\u0c2e\u0c3e\u0c32 \u0c17\u0c41\u0c30\u0c3f\u0c02\u0c1a\u0c3f \u0c05\u0c21\u0c17\u0c02\u0c21\u0c3f\u2026", askSend: "\u0c05\u0c21\u0c17\u0c02\u0c21\u0c3f", askThinking: "\u0c06\u0c32\u0c4b\u0c1a\u0c3f\u0c38\u0c4d\u0c24\u0c4b\u0c02\u0c26\u0c3f\u2026",
     askOffline: "AI \u0c05\u0c38\u0c3f\u0c38\u0c4d\u0c1f\u0c46\u0c02\u0c1f\u0c4d \u0c07\u0c02\u0c15\u0c3e \u0c38\u0c3f\u0c26\u0c4d\u0c27\u0c02 \u0c15\u0c3e\u0c32\u0c47\u0c26\u0c41.",
@@ -1358,101 +1358,90 @@ L.DomEvent.disableClickPropagation($("btnSwipe"));
   L.DomEvent.disableClickPropagation(h);
 })();
 
-/* ---- APCRDA overlay layers, discovered live and drawn muted ---- */
-// APCRDA publishes extra context layers (roads, zones, boundaries, forests)
-// as ArcGIS items. We discover them from the browser at runtime, so no
-// service URL is hard-coded. Everything here is display-only: overlays never
-// touch plot identity, the register, or the map view, and any layer that
-// can't load (cross-origin block, service down) simply flips its switch back
-// with a note — the core atlas is never affected.
+/* ---- APCRDA overlay layers (real, verified services on gis.apcrda.org) ---- */
+// These are the same host and technique as the working plot layer, so they're
+// known to load. Each toggle is one APCRDA MapServer, limited to the useful
+// sub-layers, drawn semi-transparent over the base map. Display-only: overlays
+// never touch plot identity, the register, or the map view, and any layer that
+// fails to load simply flips its switch back — the core atlas is unaffected.
+const OVROOT = "https://gis.apcrda.org/server/rest/services/";
 const OVERLAY_DEFS = [
-  { key: "roads", labelEn: "Roads", labelTe: "\u0c30\u0c4b\u0c21\u0c4d\u0c32\u0c41", match: /road|transport/i, style: { color: "#6b5b4a", weight: 1, opacity: 0.7 } },
-  { key: "zones", labelEn: "Zones", labelTe: "\u0c1c\u0c4b\u0c28\u0c4d\u0c32\u0c41", match: /zon|landuse|land use|master/i, style: { color: "#8a6d3b", weight: 1, fill: true, fillColor: "#caa96a", fillOpacity: 0.08, opacity: 0.5 } },
-  { key: "bounds", labelEn: "Boundaries", labelTe: "\u0c39\u0c26\u0c4d\u0c26\u0c41\u0c32\u0c41", match: /boundar|planning|village/i, style: { color: "#3a4a42", weight: 1.2, dashArray: "5 4", fill: false, opacity: 0.6 } },
-  { key: "forest", labelEn: "Forests", labelTe: "\u0c05\u0c21\u0c35\u0c41\u0c32\u0c41", match: /forest|green|park/i, style: { color: "#3b6d11", weight: 1, fill: true, fillColor: "#97c459", fillOpacity: 0.12, opacity: 0.5 } },
+  { key: "roads", labelEn: "Roads", labelTe: "\u0c30\u0c4b\u0c21\u0c4d\u0c32\u0c41", svc: "DMPRoads/MapServer", layers: [0, 1, 2, 8] },
+  { key: "transport", labelEn: "Transport", labelTe: "\u0c30\u0c35\u0c3e\u0c23\u0c3e", svc: "APCRDATransportation/MapServer", layers: [0, 1, 4, 5] },
+  { key: "boundaries", labelEn: "Boundaries", labelTe: "\u0c39\u0c26\u0c4d\u0c26\u0c41\u0c32\u0c41", svc: "APCRDAPlanningBoundaries/MapServer", layers: [2, 4, 6] },
+  { key: "forests", labelEn: "Forests", labelTe: "\u0c05\u0c21\u0c35\u0c41\u0c32\u0c41", svc: "APCRDAForests/MapServer", layers: [2, 3] },
 ];
-const overlayState = { discovered: false, loading: false, layers: {} }; // key -> { url, layer, on }
+const overlayLayers = {}; // key -> { layer, on }
 
-async function discoverOverlays() {
-  if (overlayState.discovered || overlayState.loading) return;
-  overlayState.loading = true;
-  try {
-    const r = await fetch("https://www.arcgis.com/sharing/rest/search?q=owner:preethi.latha%20(type:%22Feature%20Service%22)&num=100&f=json");
-    const j = await r.json();
-    const items = (j.results || []).filter((it) => it.url && /FeatureServer|MapServer/i.test(it.url));
-    for (const def of OVERLAY_DEFS) {
-      const hit = items.find((it) => def.match.test(it.title || "") || def.match.test(it.snippet || ""));
-      if (hit) overlayState.layers[def.key] = { url: hit.url, title: hit.title, layer: null, on: false };
-    }
-    overlayState.discovered = true;
-  } catch (_) {
-    overlayState.discovered = false; // allow a retry next open
-  } finally {
-    overlayState.loading = false;
+function toggleOverlay(key, on, cb) {
+  const def = OVERLAY_DEFS.find((d) => d.key === key);
+  if (!def) { cb && cb(false); return; }
+  let rec = overlayLayers[key];
+  if (on) {
+    try {
+      if (!rec) {
+        rec = overlayLayers[key] = { layer: null, on: false };
+        rec.layer = L.esri.dynamicMapLayer(esriOpts({
+          url: OVROOT + def.svc,
+          opacity: 0.75,
+          layers: def.layers,
+          pane: "apcrda",
+        }));
+      }
+      let settled = false;
+      const done = (ok) => { if (settled) return; settled = true; rec.on = ok; cb && cb(ok); };
+      rec.layer.once("load", () => done(true));
+      rec.layer.on("requesterror", () => { try { map.removeLayer(rec.layer); } catch (_) {} done(false); });
+      setTimeout(() => { if (!settled) done(true); }, 8000); // slow service: keep if drawing
+      rec.layer.addTo(map);
+    } catch (_) { cb && cb(false); }
+  } else {
+    if (rec && rec.layer) { try { map.removeLayer(rec.layer); } catch (_) {} rec.on = false; }
+    cb && cb(true);
   }
 }
 
 function overlayRowsHtml() {
   return OVERLAY_DEFS.map((def) => {
-    const found = overlayState.layers[def.key];
     const label = LANG === "te" ? def.labelTe : def.labelEn;
-    const disabled = !found;
-    return `<label class="lyrrow${disabled ? " off" : ""}">` +
-      `<span>${esc(label)}${disabled ? ` <em>${esc(t("lyrNA"))}</em>` : ""}</span>` +
-      `<input type="checkbox" data-key="${def.key}"${found && found.on ? " checked" : ""}${disabled ? " disabled" : ""}>` +
-      `</label>`;
+    const on = overlayLayers[def.key] && overlayLayers[def.key].on;
+    return `<label class="lyrrow"><span>${esc(label)}</span>` +
+      `<input type="checkbox" data-key="${def.key}"${on ? " checked" : ""}></label>`;
   }).join("");
 }
 
-function toggleOverlay(key, on, cb) {
-  const rec = overlayState.layers[key];
-  if (!rec) { cb && cb(false); return; }
-  if (on) {
-    const def = OVERLAY_DEFS.find((d) => d.key === key);
-    try {
-      rec.layer = L.esri.featureLayer(esriOpts({
-        url: rec.url,
-        style: () => def.style,
-        pane: "apcrda",
-      }));
-      let settled = false;
-      const done = (ok) => { if (settled) return; settled = true; rec.on = ok; cb && cb(ok); };
-      rec.layer.once("load", () => done(true));
-      rec.layer.on("requesterror", () => { try { map.removeLayer(rec.layer); } catch (_) {} done(false); });
-      setTimeout(() => { if (!settled) done(!!rec.layer); }, 8000); // slow service: keep if drawing
-      rec.layer.addTo(map);
-    } catch (_) { cb && cb(false); }
-  } else {
-    if (rec.layer) { try { map.removeLayer(rec.layer); } catch (_) {} }
-    rec.on = false; cb && cb(true);
-  }
-}
-
-async function openLayers() {
+function openLayers() {
   const panel = $("lyrpanel");
   const isOpen = panel.style.display === "block";
   if (isOpen) { panel.style.display = "none"; return; }
   panel.style.display = "block";
   $("lyrtitle").textContent = t("lyrTitle");
-  $("lyrbody").innerHTML = `<div class="lyrload">${esc(t("lyrLoading"))}</div>`;
-  await discoverOverlays();
-  const any = Object.keys(overlayState.layers).length > 0;
-  $("lyrbody").innerHTML = any ? overlayRowsHtml() : `<div class="lyrload">${esc(t("lyrNone"))}</div>`;
+  $("lyrhint").textContent = t("lyrHint");
+  $("lyrbody").innerHTML = overlayRowsHtml();
   $("lyrbody").querySelectorAll("input[data-key]").forEach((box) => {
     box.addEventListener("change", () => {
       const key = box.dataset.key;
+      const span = box.parentElement.querySelector("span");
+      const label = LANG === "te" ? OVERLAY_DEFS.find((d) => d.key === key).labelTe : OVERLAY_DEFS.find((d) => d.key === key).labelEn;
       box.disabled = true;
-      const prev = box.parentElement.querySelector("span").innerHTML;
-      box.parentElement.querySelector("span").innerHTML = prev.split(" <em")[0] + ` <em>${esc(t("lyrLoadingOne"))}</em>`;
+      span.innerHTML = esc(label) + ` <em>${esc(t("lyrLoadingOne"))}</em>`;
       toggleOverlay(key, box.checked, (ok) => {
         box.disabled = false;
-        const label = LANG === "te" ? OVERLAY_DEFS.find((d) => d.key === key).labelTe : OVERLAY_DEFS.find((d) => d.key === key).labelEn;
-        box.parentElement.querySelector("span").innerHTML = esc(label) + (ok ? "" : (box.checked ? ` <em>${esc(t("lyrFail"))}</em>` : ""));
+        span.innerHTML = esc(label) + (!ok && box.checked ? ` <em>${esc(t("lyrFail"))}</em>` : "");
         if (!ok && box.checked) box.checked = false;
       });
     });
   });
 }
+/* ---- collapse the register panel (desktop) ---- */
+function setCollapsed(on) {
+  document.body.classList.toggle("collapsed", on);
+  $("collapseBtn").title = on ? t("expandT") : t("collapseT");
+  setTimeout(() => { try { map.invalidateSize(); } catch (_) {} }, 280);
+}
+$("collapseBtn").addEventListener("click", () => setCollapsed(true));
+$("reopenBtn").addEventListener("click", () => setCollapsed(false));
+
 $("btnLayers").addEventListener("click", openLayers);
 $("lyrclose").addEventListener("click", () => { $("lyrpanel").style.display = "none"; });
 L.DomEvent.disableClickPropagation($("lyrpanel"));
@@ -1622,6 +1611,7 @@ function applyLang() {
   $("askbtn").textContent = "\u2726 " + t("askBtn");
   $("btnSwipe").title = swipeOn ? t("swipeOffT") : t("swipeT");
   $("btnLayers").title = t("lyrTitle");
+  $("collapseBtn").title = document.body.classList.contains("collapsed") ? t("expandT") : t("collapseT");
   const wt = $("wtitle"); if (wt) { wt.textContent = t("welcomeTitle"); $("wbody").textContent = t("welcomeBody"); $("wgo").textContent = t("welcomeBtn"); }
   applyFilters();
   // re-render whatever's open so its labels switch too

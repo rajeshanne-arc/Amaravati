@@ -258,6 +258,23 @@
     #card .actions, #card .close { display: none !important; }
     footer { position: static !important; }
   }
+  aside { position: relative; transition: margin-left .25s ease, width .25s ease; }
+  #collapseBtn {
+    position: absolute; top: 8px; right: 8px; z-index: 5;
+    width: 26px; height: 26px; border-radius: 7px; border: 1px solid var(--line);
+    background: var(--white); color: var(--ink-2); cursor: pointer; font-size: 13px; line-height: 1;
+  }
+  #collapseBtn:hover { background: #F7F5EC; }
+  body.collapsed #aside { margin-left: -420px; }
+  #reopenBtn {
+    position: absolute; left: 0; top: 50%; transform: translateY(-50%); z-index: 900;
+    display: none; align-items: center; gap: 4px;
+    background: #182420; color: #F2EFE6; border: none; border-radius: 0 10px 10px 0;
+    padding: 12px 10px; font: 600 12px 'IBM Plex Sans', sans-serif; cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0,0,0,.25); writing-mode: vertical-rl; text-orientation: mixed;
+  }
+  body.collapsed #reopenBtn { display: flex; }
+  #lyrhint { padding: 2px 14px 8px; font-size: 11px; color: #b3ada0; }
   #swipehandle {
     position: absolute; top: 0; bottom: 0; left: 50%; width: 3px; margin-left: -1.5px;
     background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.35); z-index: 1200;
@@ -360,6 +377,7 @@
 
 <main>
   <aside id="aside" aria-label="Plot register">
+    <button id="collapseBtn" type="button" title="Hide list" aria-label="Hide the plot list">&#x276E;</button>
     <div class="filters">
       <div class="row">
         <select id="fVillage" aria-label="Filter by village"><option>All villages</option></select>
@@ -379,6 +397,7 @@
       <span id="snapinfo"></span>
     </div>
   </aside>
+  <button id="reopenBtn" type="button" title="Show list" aria-label="Show the plot list">&#x276F;&nbsp;List</button>
 
   <div id="map" aria-label="Map of Amaravati LPS plots">
     <div id="mapbtns">
@@ -390,6 +409,7 @@
     <div id="swipehandle" aria-hidden="true"><span>&#x2039;&nbsp;&#x203A;</span></div>
     <div id="lyrpanel" role="dialog" aria-label="Map layers" style="display:none">
       <div id="lyrhead"><span id="lyrtitle">Map layers</span><button id="lyrclose" type="button" aria-label="Close">&#x2715;</button></div>
+      <div id="lyrhint"></div>
       <div id="lyrbody"></div>
     </div>
     <button id="regtoggle" type="button">REGISTER</button>
