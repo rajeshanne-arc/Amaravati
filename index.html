@@ -258,6 +258,31 @@
     #card .actions, #card .close { display: none !important; }
     footer { position: static !important; }
   }
+  #swipehandle {
+    position: absolute; top: 0; bottom: 0; left: 50%; width: 3px; margin-left: -1.5px;
+    background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.35); z-index: 1200;
+    cursor: ew-resize; display: none;
+  }
+  #swipehandle span {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    background: #fff; color: #17110C; border-radius: 20px; padding: 6px 8px;
+    font-size: 13px; font-weight: 700; box-shadow: 0 2px 8px rgba(0,0,0,.3); white-space: nowrap;
+  }
+  #lyrpanel {
+    position: absolute; top: 12px; right: 12px; z-index: 1300; width: 220px;
+    background: var(--white); border: 1px solid var(--line); border-radius: 12px;
+    box-shadow: 0 12px 32px rgba(0,0,0,.22); overflow: hidden;
+  }
+  #lyrhead { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-bottom: 1px solid #EFEDE4; }
+  #lyrtitle { font: 600 13px 'IBM Plex Sans', sans-serif; color: var(--ink); }
+  #lyrclose { background: none; border: none; font-size: 15px; cursor: pointer; color: #8a8474; padding: 0 2px; }
+  #lyrbody { padding: 6px 0; }
+  .lyrrow { display: flex; align-items: center; justify-content: space-between; padding: 9px 14px; font-size: 13px; color: var(--ink-2); cursor: pointer; }
+  .lyrrow:hover { background: #F7F5EC; }
+  .lyrrow.off { color: #b3ada0; cursor: default; }
+  .lyrrow em { font-style: normal; font-size: 11px; color: #b3ada0; }
+  .lyrload { padding: 14px; font-size: 12.5px; color: #8a8474; text-align: center; }
+  @media print { #swipehandle, #lyrpanel, #btnSwipe, #btnLayers { display: none !important; } }
   #askbtn {
     position: fixed; right: 18px; bottom: 18px; z-index: 2500;
     background: #182420; color: #F2EFE6; border: 1px solid #3a4a42; border-radius: 24px;
@@ -359,6 +384,13 @@
     <div id="mapbtns">
       <button id="btnGps" type="button" title="Which plot am I standing on?" aria-label="Find the plot I am standing on">&#x1F4CD;</button>
       <button id="btnSat" type="button" title="Satellite view" aria-label="Toggle satellite view">&#x1F6F0;</button>
+      <button id="btnSwipe" type="button" title="Compare with satellite" aria-label="Compare map with satellite">&#x21D4;</button>
+      <button id="btnLayers" type="button" title="Map layers" aria-label="Map layers">&#x2630;</button>
+    </div>
+    <div id="swipehandle" aria-hidden="true"><span>&#x2039;&nbsp;&#x203A;</span></div>
+    <div id="lyrpanel" role="dialog" aria-label="Map layers" style="display:none">
+      <div id="lyrhead"><span id="lyrtitle">Map layers</span><button id="lyrclose" type="button" aria-label="Close">&#x2715;</button></div>
+      <div id="lyrbody"></div>
     </div>
     <button id="regtoggle" type="button">REGISTER</button>
     <div id="card" role="dialog" aria-label="Plot record"></div>
@@ -382,6 +414,6 @@
     <button id="wgo" type="button">Start searching</button>
   </div>
 </div>
-<script src="app.js?v=16"></script>
+<script src="app.js?v=17"></script>
 </body>
 </html>
