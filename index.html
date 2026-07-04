@@ -271,15 +271,17 @@
     background: var(--white); color: var(--ink-2); cursor: pointer; font-size: 13px; line-height: 1;
   }
   #collapseBtn:hover { background: #F7F5EC; }
-  body.collapsed #aside { margin-left: -420px; }
+  @media (min-width: 881px) {
+    body.collapsed #aside { margin-left: -380px; }
+    body.collapsed #reopenBtn { display: flex; }
+  }
   #reopenBtn {
-    position: absolute; left: 0; top: 50%; transform: translateY(-50%); z-index: 900;
+    position: fixed; left: 0; top: 50%; transform: translateY(-50%); z-index: 900;
     display: none; align-items: center; gap: 4px;
     background: #182420; color: #F2EFE6; border: none; border-radius: 0 10px 10px 0;
     padding: 12px 10px; font: 600 12px 'IBM Plex Sans', sans-serif; cursor: pointer;
     box-shadow: 0 4px 14px rgba(0,0,0,.25); writing-mode: vertical-rl; text-orientation: mixed;
   }
-  body.collapsed #reopenBtn { display: flex; }
   #measurebar {
     position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 1300;
     display: none; align-items: center; gap: 10px;
@@ -482,6 +484,6 @@
     <button id="wgo" type="button">Start searching</button>
   </div>
 </div>
-<script src="app.js?v=18"></script>
+<script src="app.js?v=19"></script>
 </body>
 </html>
