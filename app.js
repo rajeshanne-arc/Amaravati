@@ -19,7 +19,7 @@ const CONFIG = {
   LNG_RANGE: [79.0, 82.0],
   // RAG assistant endpoint (Cloudflare Worker from worker/rag-assistant.js).
   // Leave "" until the worker is deployed; the Ask button then explains how.
-  ASK_ENDPOINT: "",
+  ASK_ENDPOINT: "https://amaravati.arc-lps.workers.dev",
 };
 
 /* ---------------- zoning palette (official RGB, keyed by code prefix) ---- */
