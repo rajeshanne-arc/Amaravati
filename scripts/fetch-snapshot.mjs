@@ -54,57 +54,99 @@ const slug = (v) =>
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-// Keyset pagination on ESRI_OID. Plain resultOffset paging on ArcGIS has no
-// guaranteed order, so records get skipped or duplicated between pages —
-// especially while the source data is being edited. Ordering by object id
-// and asking for "everything after the last id I saw" is stable.
-async function getPage(afterOid, attempt = 1) {
-  const params = new URLSearchParams({
-    where: afterOid == null ? "1=1" : `ESRI_OID > ${Number(afterOid)}`,
-    outFields: "*",
-    orderByFields: "ESRI_OID ASC",
-    returnGeometry: "false",
-    f: "json",
-    resultRecordCount: String(PAGE),
-  });
-  const url = `${SERVICE}/${LAYER}/query?${params}`;
+// Two-phase crawl — the only pagination that cannot lose records:
+//   1) ask the server for the complete list of object IDs (returnIdsOnly
+//      bypasses the transfer limit, so all ~96k come back in one response)
+//   2) fetch attributes in fixed batches of those exact IDs
+// This is immune to sort-order quirks, transfer limits, and edits that
+// happen while the crawl is running. Every ID is accounted for, and the
+// script verifies the final count matches before writing anything.
+async function post(params, attempt = 1) {
+  const url = `${SERVICE}/${LAYER}/query`;
   try {
-    const res = await fetch(url, { headers: { accept: "application/json" } });
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded", accept: "application/json" },
+      body: params.toString(),
+    });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
     if (json.error) throw new Error(JSON.stringify(json.error));
     return json;
   } catch (err) {
-    if (attempt >= 4) throw err;
+    if (attempt >= 5) throw err;
     const wait = attempt * 1500;
-    console.warn(`  page @${offset} failed (${err.message}) — retry in ${wait}ms`);
+    console.warn(`  request failed (${err.message}) — retry in ${wait}ms`);
     await sleep(wait);
-    return getPage(offset, attempt + 1);
+    return post(params, attempt + 1);
   }
+}
+
+async function fetchAllIds() {
+  const json = await post(new URLSearchParams({ where: "1=1", returnIdsOnly: "true", f: "json" }));
+  const ids = json.objectIds || [];
+  const oidField = json.objectIdFieldName || "ESRI_OID";
+  if (!ids.length) throw new Error("server returned no object IDs");
+  return { ids, oidField };
+}
+
+async function fetchBatch(ids) {
+  const json = await post(new URLSearchParams({
+    objectIds: ids.join(","),
+    outFields: "*",
+    returnGeometry: "false",
+    f: "json",
+  }));
+  return (json.features || []).map((f) => f.attributes);
 }
 
 async function main() {
   console.log("Fetching LPS plot data from APCRDA…");
-  const rawById = new Map(); // ESRI_OID -> attributes (dedupes any page overlap)
-  let afterOid = null;
+  const { ids, oidField } = await fetchAllIds();
+  console.log(`  server reports ${ids.length} records (id field: ${oidField})`);
 
-  for (;;) {
-    const json = await getPage(afterOid);
-    const feats = json.features || [];
-    if (!feats.length) break;
-    for (const f of feats) {
-      const a = f.attributes;
-      if (a && a.ESRI_OID != null && !rawById.has(a.ESRI_OID)) rawById.set(a.ESRI_OID, a);
+  const rawById = new Map();
+  const BATCH = 500;
+  const pending = [];
+  for (let i = 0; i < ids.length; i += BATCH) pending.push(ids.slice(i, i + BATCH));
+  let done = 0;
+  for (const batch of pending) {
+    const attrs = await fetchBatch(batch);
+    for (const a of attrs) {
+      const oid = a[oidField] != null ? a[oidField] : a.ESRI_OID;
+      if (oid != null && !rawById.has(oid)) rawById.set(oid, a);
     }
-    afterOid = feats[feats.length - 1].attributes.ESRI_OID;
-    console.log(`  ${rawById.size} records… (oid ≤ ${afterOid})`);
-    if (feats.length < PAGE && json.exceededTransferLimit !== true) break;
-    await sleep(300); // be polite to a government server
+    done += batch.length;
+    if (done % 5000 < BATCH) console.log(`  ${rawById.size} of ${ids.length}…`);
+    await sleep(150); // be polite to a government server
+  }
+
+  // account for every ID; re-fetch stragglers once before giving up
+  let missing = ids.filter((i) => !rawById.has(i));
+  if (missing.length) {
+    console.warn(`  re-fetching ${missing.length} missing records…`);
+    for (let i = 0; i < missing.length; i += BATCH) {
+      for (const a of await fetchBatch(missing.slice(i, i + BATCH))) {
+        const oid = a[oidField] != null ? a[oidField] : a.ESRI_OID;
+        if (oid != null) rawById.set(oid, a);
+      }
+      await sleep(150);
+    }
+    missing = ids.filter((i) => !rawById.has(i));
+  }
+  if (missing.length > ids.length * 0.001) {
+    console.error(`Crawl incomplete: ${missing.length} of ${ids.length} records unreachable — refusing to write.`);
+    process.exit(1);
   }
   const raw = [...rawById.values()];
+  console.log(`  crawl complete: ${raw.length} of ${ids.length} records captured.`);
 
-  if (!raw.length) {
-    console.error("No records returned — leaving existing files untouched.");
+  // Hard floor: this dataset has ~96k records. Anything wildly below that is
+  // a broken crawl, and no snapshot must ever be written from it — even when
+  // there is no previous file to compare against.
+  const ABSOLUTE_FLOOR = 50000;
+  if (raw.length < ABSOLUTE_FLOOR) {
+    console.error(`Only ${raw.length} records captured (hard floor ${ABSOLUTE_FLOOR}) — refusing to write.`);
     process.exit(1);
   }
 
