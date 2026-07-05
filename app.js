@@ -250,6 +250,7 @@ const I18N = {
     recentChanges: "Recent changes", feedTitle: "RECENT CHANGES — ALL PLOTS", feedEmpty: "No changes recorded yet. The nightly comparison will list ownership, zone and registration changes here, permanently.",
     swipeT: "Compare with satellite", swipeOffT: "Turn off compare",
     collapseT: "Hide list", expandT: "Show list", legendTitle: "Zone legend", legend: "Legend",
+    legendFilterHint: "Tap a zone to show only those plots. Pick a village to narrow further.", legendClear: "Show all zones",
     directions: "Directions", routeAll: "Route through all plots",
     routeNeedTwo: "Need at least two locatable plots for a route.",
     routeCapped: "Route for the first {n} of {m} plots (map app limit).",
@@ -309,6 +310,7 @@ const I18N = {
     recentChanges: "ఇటీవలి మార్పులు", feedTitle: "ఇటీవలి మార్పులు — అన్ని ప్లాట్లు", feedEmpty: "ఇంకా మార్పులు నమోదు కాలేదు. రాత్రి పోలిక ద్వారా యాజమాన్య, జోన్, రిజిస్ట్రేషన్ మార్పులు ఇక్కడ శాశ్వతంగా కనిపిస్తాయి.",
     swipeT: "\u0c36\u0c3e\u0c1f\u0c3f\u0c32\u0c48\u0c1f\u0c4d\u200c\u0c24\u0c4b \u0c2a\u0c4b\u0c32\u0c4d\u0c1a\u0c02\u0c21\u0c3f", swipeOffT: "\u0c2a\u0c4b\u0c32\u0c3f\u0c15 \u0c06\u0c2a\u0c02\u0c21\u0c3f",
     collapseT: "\u0c1c\u0c3e\u0c2c\u0c3f\u0c24\u0c3e \u0c26\u0c3e\u0c1a\u0c41", expandT: "\u0c1c\u0c3e\u0c2c\u0c3f\u0c24\u0c3e \u0c1a\u0c42\u0c2a\u0c41", legendTitle: "\u0c1c\u0c4b\u0c28\u0c4d \u0c32\u0c46\u0c1c\u0c46\u0c02\u0c21\u0c4d", legend: "\u0c32\u0c46\u0c1c\u0c46\u0c02\u0c21\u0c4d",
+    legendFilterHint: "\u0c06 \u0c2a\u0c4d\u0c32\u0c3e\u0c1f\u0c4d\u0c32\u0c28\u0c47 \u0c1a\u0c42\u0c2a\u0c21\u0c3e\u0c28\u0c3f\u0c15\u0c3f \u0c1c\u0c4b\u0c28\u0c4d \u0c28\u0c4a\u0c15\u0c4d\u0c15\u0c02\u0c21\u0c3f. \u0c17\u0c4d\u0c30\u0c3e\u0c2e\u0c02 \u0c0e\u0c02\u0c1a\u0c41\u0c15\u0c4b\u0c02\u0c21\u0c3f.", legendClear: "\u0c05\u0c28\u0c4d\u0c28\u0c3f \u0c1c\u0c4b\u0c28\u0c4d\u0c32\u0c41 \u0c1a\u0c42\u0c2a\u0c41",
     directions: "\u0c26\u0c3e\u0c30\u0c3f", routeAll: "\u0c05\u0c28\u0c4d\u0c28\u0c3f \u0c2a\u0c4d\u0c32\u0c3e\u0c1f\u0c4d\u0c32 \u0c2e\u0c3e\u0c30\u0c4d\u0c17\u0c02",
     routeNeedTwo: "\u0c2e\u0c3e\u0c30\u0c4d\u0c17\u0c02 \u0c15\u0c4b\u0c38\u0c02 \u0c15\u0c28\u0c40\u0c38\u0c02 \u0c30\u0c46\u0c02\u0c21\u0c41 \u0c2a\u0c4d\u0c32\u0c3e\u0c1f\u0c4d\u0c32\u0c41 \u0c15\u0c3e\u0c35\u0c3e\u0c32\u0c3f.",
     routeCapped: "{m}\u0c32\u0c4b \u0c2e\u0c4a\u0c26\u0c1f\u0c3f {n} \u0c2a\u0c4d\u0c32\u0c3e\u0c1f\u0c4d\u0c32\u0c15\u0c41 \u0c2e\u0c3e\u0c30\u0c4d\u0c17\u0c02.",
@@ -724,7 +726,7 @@ function buildChips() {
 }
 buildChips();
 
-$("fVillage").addEventListener("change", (e) => { state.filters.village = e.target.value; applyFilters(); });
+$("fVillage").addEventListener("change", (e) => { state.filters.village = e.target.value; applyFilters(); if (typeof applyMapFilter === "function") applyMapFilter(); });
 
 /* sortable header (labels resolved through t() so language switches apply) */
 const COLS = [
@@ -1731,6 +1733,52 @@ $("measuredone").addEventListener("click", () => setMeasure(false));
 L.DomEvent.disableClickPropagation($("btnMeasure"));
 L.DomEvent.disableClickPropagation($("measurebar"));
 
+/* ---- zone filter: server-side layerDefs so only matching plots draw ---- */
+// The plot layer is a server-rendered image, so we can't grey out individual
+// shapes client-side. Instead we ask the server to render ONLY the plots
+// matching the chosen zone (+ village); everything else renders transparent,
+// letting the base map show through — the "greyed out" effect.
+const zoneFilter = { zone: null }; // e.g. "R4", "C", or null for all
+function currentVillageClause() {
+  const v = state.filters.village;
+  return (v && v !== "__ALL__") ? " AND lpsvillage = '" + String(v).replace(/'/g, "''") + "'" : "";
+}
+function buildPlotDef() {
+  const parts = [];
+  if (zoneFilter.zone) {
+    // family codes (single letter) match a whole family; specific like "R4" match exactly
+    const z = zoneFilter.zone;
+    parts.push(/^[A-Z]$/.test(z) ? "symbology LIKE '" + z + "%'" : "symbology LIKE '" + z + "%'");
+  }
+  const v = state.filters.village;
+  if (v && v !== "__ALL__") parts.push("lpsvillage = '" + String(v).replace(/'/g, "''") + "'");
+  return parts.length ? parts.join(" AND ") : null;
+}
+function applyMapFilter() {
+  const def = buildPlotDef();
+  try {
+    if (def) lpsLayer.setLayerDefs({ 0: def });
+    else if (lpsLayer.setLayerDefs) lpsLayer.setLayerDefs({});
+  } catch (_) {}
+  // reflect active state on legend rows + village-driven overlays
+  document.querySelectorAll(".leg-row").forEach((r) => r.classList.toggle("active", r.dataset.zone === zoneFilter.zone));
+  const clearBtn = $("legendclear");
+  if (clearBtn) clearBtn.style.display = zoneFilter.zone ? "block" : "none";
+  // keep enabled overlay layers filtered to the same village
+  for (const key in overlayLayers) {
+    const rec = overlayLayers[key];
+    if (rec && rec.on && rec.layer && rec.layer.setLayerDefs) {
+      const v = state.filters.village;
+      // overlays have their own layer ids; village filtering is best-effort
+      try { rec.layer.setLayerDefs(v && v !== "__ALL__" ? { } : {}); } catch (_) {}
+    }
+  }
+}
+function setZoneFilter(zone) {
+  zoneFilter.zone = (zoneFilter.zone === zone) ? null : zone; // toggle off if same
+  applyMapFilter();
+}
+
 /* ---- zone legend (built from the app's own ZONE_COLORS) ---- */
 const LEGEND_ROWS = [
   { fam: "Residential", en: "Residential", te: "\u0c28\u0c3f\u0c35\u0c3e\u0c38", zones: [
@@ -1769,23 +1817,32 @@ const LEGEND_ROWS = [
 ];
 function openLegend() {
   const panel = $("legendpanel");
-  const isOpen = panel.style.display === "block";
+  const isOpen = panel.style.display === "flex";
   if (isOpen) { panel.style.display = "none"; return; }
-  panel.style.display = "block";
+  panel.style.display = "flex";
   $("legendtitle").textContent = t("legendTitle");
-  let html = "";
+  let html = `<div class="leg-hint">${esc(t("legendFilterHint"))}</div>`;
   for (const g of LEGEND_ROWS) {
     html += `<div class="leg-group">${esc(LANG === "te" ? g.te : g.en)}</div>`;
     for (const [code, en, te] of g.zones) {
       const col = ZONE_COLORS[code] || "#CFCABB";
-      html += `<div class="leg-row"><span class="leg-sw" style="background:${col}"></span>` +
+      html += `<div class="leg-row${zoneFilter.zone === code ? " active" : ""}" data-zone="${code}" role="button" tabindex="0">` +
+        `<span class="leg-sw" style="background:${col}"></span>` +
         `<span class="leg-code">${code}</span><span class="leg-name">${esc(LANG === "te" ? te : en)}</span></div>`;
     }
   }
   $("legendbody").innerHTML = html;
+  $("legendbody").querySelectorAll(".leg-row").forEach((r) => {
+    const pick = () => setZoneFilter(r.dataset.zone);
+    r.addEventListener("click", pick);
+    r.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } });
+  });
+  $("legendclear").textContent = t("legendClear");
+  $("legendclear").style.display = zoneFilter.zone ? "block" : "none";
 }
 $("btnLegend").addEventListener("click", openLegend);
 $("legendclose").addEventListener("click", () => { $("legendpanel").style.display = "none"; });
+$("legendclear").addEventListener("click", () => { zoneFilter.zone = null; applyMapFilter(); });
 L.DomEvent.disableClickPropagation($("legendpanel"));
 L.DomEvent.disableClickPropagation($("btnLegend"));
 
