@@ -216,7 +216,7 @@ const I18N = {
     famAll: "All", famResidential: "Residential", famCommercial: "Commercial", famIndustry: "Industry",
     famParks: "Parks", famInstitutional: "Institutional", famReserve: "Reserve",
     plotsWord: "plots", totalExtent: "total extent (as recorded)",
-    colPlot: "Plot", colVillage: "Village", colZone: "Zone", colExtent: "Extent",
+    colPlot: "Plot", colVillage: "Village", colZone: "Zone", colExtent: "Extent", colEntity: "Entity",
     noMatch: "No plots match. Clear a filter or shorten the search to widen the register.",
     loadingReg: "Loading register…",
     returnable: "RETURNABLE PLOT",
@@ -275,7 +275,7 @@ const I18N = {
     famAll: "అన్నీ", famResidential: "నివాస", famCommercial: "వాణిజ్య", famIndustry: "పరిశ్రమ",
     famParks: "పార్కులు", famInstitutional: "సంస్థాగత", famReserve: "రిజర్వ్",
     plotsWord: "ప్లాట్లు", totalExtent: "మొత్తం విస్తీర్ణం (నమోదైనది)",
-    colPlot: "ప్లాట్", colVillage: "గ్రామం", colZone: "జోన్", colExtent: "విస్తీర్ణం",
+    colPlot: "ప్లాట్", colVillage: "గ్రామం", colZone: "జోన్", colExtent: "విస్తీర్ణం", colEntity: "సంస్థ",
     noMatch: "ఏ ప్లాట్లూ సరిపోలలేదు. ఫిల్టర్ తీసేయండి లేదా శోధనను చిన్నదిగా చేయండి.",
     loadingReg: "రిజిస్టర్ లోడ్ అవుతోంది…",
     returnable: "రిటర్నబుల్ ప్లాట్",
@@ -354,6 +354,7 @@ const state = {
   changes: null,        // permanent change log: { map: id -> [entries], since }
   geoOk: false,         // snapshot id scheme matches this app -> shards usable
   regMode: "plots",     // "plots" (returnable) or "alloc" (allocated lands)
+  allocSort: { key: "ext", dir: -1 }, // allocated view sort (default: largest first)
 };
 
 /* ---------------- map ---------------- */
@@ -599,6 +600,12 @@ async function loadAllocated() {
     });
   } catch (_) { /* offline: fall back to in-memory matches only */ }
   alloc.plots = [...seen.values()];
+  // make allocated parcels resolvable by openPlot (they aren't in the main
+  // register's byCode index, so without this a click finds no record)
+  for (const p of alloc.plots) {
+    if (!state.byCode.has(p.id)) state.byCode.set(p.id, p);
+    if (p.code && looksLikeCode(p.code) && !state.byCode.has(p.code)) state.byCode.set(p.code, p);
+  }
   alloc.loaded = true;
   alloc.loading = false;
 }
@@ -614,7 +621,14 @@ function applyAllocFilters() {
     }
     return true;
   });
-  list.sort((a, b) => String(a.farmer || "").localeCompare(String(b.farmer || "")));
+  const { key, dir } = state.allocSort;
+  list.sort((a, b) => {
+    let av, bv;
+    if (key === "ext") { av = typeof a.ext === "number" ? a.ext : -Infinity; bv = typeof b.ext === "number" ? b.ext : -Infinity; return (av - bv) * dir; }
+    av = String((key === "village" ? a.village : entityShort(a.farmer)) || "");
+    bv = String((key === "village" ? b.village : entityShort(b.farmer)) || "");
+    return av.localeCompare(bv) * dir;
+  });
   state.filtered = list;
   const totalExt = list.reduce((s, p) => s + (typeof p.ext === "number" ? p.ext : 0), 0);
   const entities = new Set(list.map((p) => ownerKey(p.farmer))).size;
@@ -625,8 +639,30 @@ function applyAllocFilters() {
   renderAllocTable();
 }
 
+const ALLOC_COLS = [
+  { key: "farmer", labelKey: "colEntity", w: "" },
+  { key: "village", labelKey: "colVillage", w: "96px" },
+  { key: "ext", labelKey: "colExtent", w: "66px", right: true },
+];
 function renderAllocTable() {
-  $("thead").innerHTML = "";
+  // sortable header
+  const h = $("thead");
+  h.innerHTML = "";
+  ALLOC_COLS.forEach((c) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.style.width = c.w || "auto";
+    if (!c.w) b.style.flex = "1";
+    if (c.right) b.style.justifyContent = "flex-end";
+    const on = state.allocSort.key === c.key;
+    b.className = on ? "on" : "";
+    b.textContent = t(c.labelKey) + (on ? (state.allocSort.dir === 1 ? " ↑" : " ↓") : "");
+    b.addEventListener("click", () => {
+      state.allocSort = { key: c.key, dir: state.allocSort.key === c.key ? -state.allocSort.dir : (c.key === "ext" ? -1 : 1) };
+      applyAllocFilters();
+    });
+    h.appendChild(b);
+  });
   const rows = state.filtered;
   if (!rows.length) {
     $("tlist").innerHTML = `<div class="empty">${esc(alloc.loading ? t("allocLoading") : t("noMatch"))}</div>`;
