@@ -31,6 +31,7 @@ const ZONE_COLORS = {
   P1: "rgb(1,127,63)", P2: "rgb(0,205,52)", P3: "rgb(151,219,242)",
   S1: "rgb(230,0,0)", S2: "rgb(255,127,127)", S3: "rgb(215,176,158)",
   U1: "rgb(178,178,178)", U2: "rgb(220,218,210)",
+  RVAC: "rgb(255,244,204)", CVAC: "rgb(204,236,247)",
 };
 const FAMILY_OF = { R: "Residential", C: "Commercial", I: "Industry", P: "Parks", S: "Institutional", U: "Reserve" };
 const FAMILIES = ["All", "Residential", "Commercial", "Industry", "Parks", "Institutional", "Reserve"];
@@ -702,6 +703,7 @@ async function setRegMode(mode) {
     buildChips();
     applyFilters();
   }
+  if (typeof applyMapFilter === "function") applyMapFilter(); // grey out non-matching land on the map
 }
 $("modePlots").addEventListener("click", () => setRegMode("plots"));
 $("modeAlloc").addEventListener("click", () => setRegMode("alloc"));
@@ -755,10 +757,13 @@ function buildHead() {
 }
 buildHead();
 function paintHead() {
+  if (state.regMode === "alloc") return; // allocated view paints its own header
   [...$("thead").children].forEach((b) => {
+    const col = COLS.find((c) => c.key === b.dataset.key);
+    if (!col) return; // header belongs to a different mode; skip
     const on = b.dataset.key === state.sort.key;
     b.classList.toggle("on", on);
-    b.textContent = t(COLS.find((c) => c.key === b.dataset.key).labelKey) + (on ? (state.sort.dir === 1 ? " ↑" : " ↓") : "");
+    b.textContent = t(col.labelKey) + (on ? (state.sort.dir === 1 ? " ↑" : " ↓") : "");
   });
 }
 
@@ -768,6 +773,7 @@ const tlist = $("tlist");
 tlist.addEventListener("scroll", () => requestAnimationFrame(renderTable));
 
 function renderTable() {
+  if (state.regMode === "alloc") { renderAllocTable(); return; } // allocated view has its own renderer
   paintHead();
   const rows = state.filtered;
   if (!rows.length) {
@@ -1745,10 +1751,19 @@ function currentVillageClause() {
 }
 function buildPlotDef() {
   const parts = [];
-  if (zoneFilter.zone) {
-    // family codes (single letter) match a whole family; specific like "R4" match exactly
-    const z = zoneFilter.zone;
-    parts.push(/^[A-Z]$/.test(z) ? "symbology LIKE '" + z + "%'" : "symbology LIKE '" + z + "%'");
+  if (state.regMode === "alloc") {
+    // show only named-entity allotments — the SQL mirror of isEntityOwner
+    parts.push("(" + ["LTD","Limited","Pvt","Universit","Institute","INSTITUTE","Trust",
+      "Foundation","Society","L&T","Corporation","Company","Enterprises","Industries","Hotels"]
+      .map((w) => "farmer_n LIKE '%" + w + "%'").join(" OR ") + ")");
+  } else if (zoneFilter.zone === "__VACANT__") {
+    parts.push("(symbology LIKE '%Vacant%')");
+  } else if (zoneFilter.zone === "RVAC") {
+    parts.push("symbology LIKE 'Residential Vacant%'");
+  } else if (zoneFilter.zone === "CVAC") {
+    parts.push("symbology LIKE 'Commercial Vacant%'");
+  } else if (zoneFilter.zone) {
+    parts.push("symbology LIKE '" + zoneFilter.zone + "%'");
   }
   const v = state.filters.village;
   if (v && v !== "__ALL__") parts.push("lpsvillage = '" + String(v).replace(/'/g, "''") + "'");
@@ -1813,6 +1828,10 @@ const LEGEND_ROWS = [
   { fam: "Reserve", en: "Reserve & roads", te: "\u0c30\u0c3f\u0c1c\u0c30\u0c4d\u0c35\u0c4d, \u0c30\u0c4b\u0c21\u0c4d\u0c32\u0c41", zones: [
     ["U1", "Utilities / reserve", "\u0c2f\u0c42\u0c1f\u0c3f\u0c32\u0c3f\u0c1f\u0c40\u0c38\u0c4d"],
     ["U2", "Road network", "\u0c30\u0c4b\u0c21\u0c4d \u0c28\u0c46\u0c1f\u0c4d\u0c35\u0c30\u0c4d\u0c15\u0c4d"],
+  ]},
+  { fam: "Vacant", en: "Vacant lands", te: "\u0c16\u0c3e\u0c33\u0c40 \u0c2d\u0c42\u0c2e\u0c41\u0c32\u0c41", zones: [
+    ["RVAC", "Residential vacant", "\u0c28\u0c3f\u0c35\u0c3e\u0c38 \u0c16\u0c3e\u0c33\u0c40"],
+    ["CVAC", "Commercial vacant", "\u0c35\u0c3e\u0c23\u0c3f\u0c1c\u0c4d\u0c2f \u0c16\u0c3e\u0c33\u0c40"],
   ]},
 ];
 function openLegend() {
