@@ -408,6 +408,15 @@ function showLiveHelp() {
 }
 
 /* ---------------- snapshot ---------------- */
+// esri-leaflet may move a feature's object id onto the GeoJSON feature `id`
+// and omit it from properties; this recovers a properties object that always
+// carries ESRI_OID, so normalize() derives the correct, unique identity.
+function featureProps(f) {
+  const p = f && f.properties ? f.properties : {};
+  if (p.ESRI_OID == null && f && f.id != null) p.ESRI_OID = f.id;
+  return p;
+}
+
 function normalize(a) {
   const rawCode = (a.plot_code || "").trim();
   const rawReg = (a.regcode || "").trim();
@@ -593,7 +602,7 @@ async function loadAllocated() {
         .run((err, fc) => {
           if (!err && fc) {
             for (const f of fc.features) {
-              const rec = normalize(f.properties || {});
+              const rec = normalize(featureProps(f));
               if (!isEntityOwner(rec.farmer)) continue;
               add({ id: rec.id, oid: rec.oid, farmer: rec.farmer, sym: rec.sym, ext: rec.ext, village: rec.village, no: rec.no, code: rec.code, reg: rec.reg });
             }
@@ -711,7 +720,7 @@ async function loadZoneList(zoneKey) {
         .run((err, fc) => {
           if (!err && fc) {
             for (const f of fc.features) {
-              const r = normalize(f.properties || {});
+              const r = normalize(featureProps(f));
               const rec = { id: r.id, oid: r.oid, farmer: r.farmer, sym: r.sym, ext: r.ext, village: r.village, no: r.no, code: r.code, reg: r.reg };
               const k = keyOf(rec);
               if (!seen.has(k)) seen.set(k, rec);
@@ -1044,7 +1053,7 @@ function liveSearch(raw) {
       const seen = new Set();
       const uniq = [];
       for (const f of feats) {
-        const p = normalize(f.properties || {});
+        const p = normalize(featureProps(f));
         const key = p.id + "|" + (p.farmer || "") + "|" + p.village;
         if (seen.has(key)) continue;
         seen.add(key);
@@ -1283,7 +1292,7 @@ function renderCard(rec, geom) {
       `<button type="button" class="primary" id="actZoom">${esc(t("zoom"))}</button>` +
       `<button type="button" class="ghost" id="actShare">${esc(t("share"))}</button>` +
       `<button type="button" class="ghost" id="actCopy">${esc(t("copy"))}</button>` +
-      `<button type="button" class="ghost star${isSaved(rec.id) ? " on" : ""}" id="actSave" title="${esc(isSaved(rec.id) ? t("savedT") : t("saveT"))}">${isSaved(rec.id) ? "★" : "☆"}</button>` +
+      `<button type="button" class="ghost star${isSavedRec(rec) ? " on" : ""}" id="actSave" title="${esc(isSavedRec(rec) ? t("savedT") : t("saveT"))}">${isSavedRec(rec) ? "★" : "☆"}</button>` +
     `</div>` +
     `<div class="actions"><button type="button" class="ghost" id="actDir" style="flex:1">${esc(t("directions"))}</button></div>` +
     `<div class="actions"><button type="button" class="ghost" id="actPrint" style="flex:1">${esc(t("printRec"))}</button></div>` +
@@ -1322,11 +1331,11 @@ function renderCard(rec, geom) {
     } else toast(t("noLocation"));
   });
   $("actSave").addEventListener("click", () => {
-    toggleSaved(rec.id);
+    toggleSavedRec(rec);
     const b = $("actSave");
-    b.textContent = isSaved(rec.id) ? "★" : "☆";
-    b.title = isSaved(rec.id) ? t("savedT") : t("saveT");
-    b.classList.toggle("on", isSaved(rec.id));
+    b.textContent = isSavedRec(rec) ? "★" : "☆";
+    b.title = isSavedRec(rec) ? t("savedT") : t("saveT");
+    b.classList.toggle("on", isSavedRec(rec));
   });
   $("actPrint").addEventListener("click", () => window.print());
   $("actCopy").addEventListener("click", async () => {
@@ -1482,7 +1491,7 @@ function openOwner(name) {
       .run((err, fc) => {
         if (!err && fc && fc.features) {
           for (const f of fc.features) {
-            const live = normalize(f.properties || {});
+            const live = normalize(featureProps(f));
             const ll = geojsonLatLngs(f.geometry);
             if (live.id && ll && !resolved.has(live.id)) resolved.set(live.id, ll);
           }
@@ -1994,17 +2003,55 @@ L.DomEvent.disableClickPropagation($("lyrpanel"));
 L.DomEvent.disableScrollPropagation($("lyrpanel"));
 L.DomEvent.disableClickPropagation($("btnLayers"));
 
-/* ---------------- bookmarks: my plots ---------------- */
+/* ---------------- bookmarks: my plots ----------------
+   Saved by a STABLE key, not the object id. APCRDA renumbers object ids when
+   it rebuilds its layer, so an id saved today can point at a different plot
+   tomorrow. The registration code (else plot_code + village) is stable, so
+   saves keep pointing at the same physical plot across data refreshes. */
+function stableKey(rec) {
+  if (!rec) return null;
+  if (looksLikeCode(rec.reg)) return "r:" + rec.reg;
+  if (looksLikeCode(rec.code)) return "c:" + rec.code + "#" + (rec.village || "");
+  return "o:" + rec.id; // last resort for records with neither
+}
 function getSaved() { try { return JSON.parse(localStorage.getItem("lps-saved") || "[]"); } catch (_) { return []; } }
+// One-time cleanup: earlier versions saved raw object ids ("p12345"), which
+// APCRDA later renumbered — so those entries now point at the wrong plots and
+// can't be safely converted. Drop them once; new saves use stable keys
+// ("r:"/"c:" prefixes) that survive renumbering.
+(function migrateSaved() {
+  try {
+    if (localStorage.getItem("lps-saved-v2") === "1") return;
+    const cur = JSON.parse(localStorage.getItem("lps-saved") || "[]");
+    const kept = cur.filter((k) => typeof k === "string" && /^[rco]:/.test(k));
+    localStorage.setItem("lps-saved", JSON.stringify(kept));
+    localStorage.setItem("lps-saved-v2", "1");
+  } catch (_) {}
+})();
 function setSaved(a) { try { localStorage.setItem("lps-saved", JSON.stringify(a)); } catch (_) {} paintMyCount(); }
-function isSaved(id) { return getSaved().includes(id); }
-function toggleSaved(id) { const a = getSaved(); const i = a.indexOf(id); if (i >= 0) a.splice(i, 1); else a.push(id); setSaved(a); }
+function isSavedRec(rec) { const k = stableKey(rec); return !!k && getSaved().includes(k); }
+function toggleSavedRec(rec) { const k = stableKey(rec); if (!k) return; const a = getSaved(); const i = a.indexOf(k); if (i >= 0) a.splice(i, 1); else a.push(k); setSaved(a); }
+// resolve saved stable-keys back to plots currently in memory
+function savedPlots() {
+  const wanted = new Set(getSaved());
+  const out = [];
+  const seen = new Set();
+  const pools = [state.plots, alloc.plots || [], ...Object.values(zoneBrowse.cache || {})];
+  for (const pool of pools) {
+    for (const p of pool) {
+      const k = stableKey(p);
+      if (wanted.has(k) && !seen.has(k)) { seen.add(k); out.push(p); }
+    }
+  }
+  return out;
+}
+paintMyCount();
 function paintMyCount() {
   const n = getSaved().length;
   $("mybtn").textContent = "\u2605 " + t("myPlots") + (n ? " (" + n + ")" : "");
 }
 $("mybtn").addEventListener("click", () => {
-  const saved = getSaved().map((id) => state.byCode.get(id)).filter(Boolean);
+  const saved = savedPlots();
   suggest.innerHTML = saved.length
     ? saved.map((p) => suggestRow(p, p.farmer || "")).join("")
     : `<div class="s-note">${esc(t("myPlotsEmpty"))}</div>`;
