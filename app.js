@@ -1844,6 +1844,8 @@ $("btnLegend").addEventListener("click", openLegend);
 $("legendclose").addEventListener("click", () => { $("legendpanel").style.display = "none"; });
 $("legendclear").addEventListener("click", () => { zoneFilter.zone = null; applyMapFilter(); });
 L.DomEvent.disableClickPropagation($("legendpanel"));
+L.DomEvent.disableScrollPropagation($("legendpanel"));
+L.DomEvent.disableScrollPropagation($("legendbody"));
 L.DomEvent.disableClickPropagation($("btnLegend"));
 
 /* ---- collapse the register panel (desktop) ---- */
@@ -1858,6 +1860,7 @@ $("reopenBtn").addEventListener("click", () => setCollapsed(false));
 $("btnLayers").addEventListener("click", openLayers);
 $("lyrclose").addEventListener("click", () => { $("lyrpanel").style.display = "none"; });
 L.DomEvent.disableClickPropagation($("lyrpanel"));
+L.DomEvent.disableScrollPropagation($("lyrpanel"));
 L.DomEvent.disableClickPropagation($("btnLayers"));
 
 /* ---------------- bookmarks: my plots ---------------- */
@@ -1984,6 +1987,7 @@ $("askbtn").addEventListener("click", () => {
 $("asksend").addEventListener("click", askSubmit);
 $("askinput").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); askSubmit(); } });
 L.DomEvent.disableClickPropagation($("askpanel"));
+L.DomEvent.disableScrollPropagation($("askpanel"));
 L.DomEvent.disableClickPropagation($("askbtn"));
 
 /* ---------------- mobile register toggle ---------------- */
