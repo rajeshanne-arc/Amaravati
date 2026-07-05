@@ -796,6 +796,7 @@ async function setRegMode(mode) {
     }
     applyAllocFilters();
   } else {
+    buildHead(); // restore the returnable sortable header (alloc/zone replaced it)
     buildChips();
     applyFilters();
   }
@@ -859,10 +860,16 @@ function buildHead() {
 }
 buildHead();
 function paintHead() {
-  if (state.regMode === "alloc") return; // allocated view paints its own header
+  if (state.regMode === "alloc" || state.regMode === "zone") return; // those views paint their own header
+  // If the header currently belongs to another mode (allocated/zone leaves its
+  // own buttons in #thead), rebuild the returnable header so its sort handlers
+  // are correct — otherwise clicking a column runs the wrong mode's sort.
+  const heads = [...$("thead").children];
+  const stale = heads.length !== COLS.length || heads.some((b) => !COLS.find((c) => c.key === b.dataset.key));
+  if (stale) { buildHead(); }
   [...$("thead").children].forEach((b) => {
     const col = COLS.find((c) => c.key === b.dataset.key);
-    if (!col) return; // header belongs to a different mode; skip
+    if (!col) return;
     const on = b.dataset.key === state.sort.key;
     b.classList.toggle("on", on);
     b.textContent = t(col.labelKey) + (on ? (state.sort.dir === 1 ? " ↑" : " ↓") : "");
