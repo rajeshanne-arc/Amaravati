@@ -205,7 +205,7 @@ async function main() {
       for (const f of TRACKED) {
         const ov = String(old[f] ?? "").trim();
         const nv = String(a[f] ?? "").trim();
-        if (ov !== nv && (ov || nv)) { changeLog.changes.push({ id: deriveId(a), key: k, d: day, f, from: ov, to: nv }); added++; }
+        if (ov !== nv && (ov || nv)) { changeLog.changes.push({ id: deriveId(a), key: k, d: day, f, from: ov, to: nv, village: (a.lpsvillage || "").trim() }); added++; }
       }
     }
     changeLog.updated = generated;
@@ -286,7 +286,7 @@ async function main() {
 
   await writeFile("data/changes.json", JSON.stringify(changeLog));
 
-  const indexOut = { generated, source: `${SERVICE}/${LAYER}`, count: index.length, villageBounds, plots: index };
+  const indexOut = { generated, source: `${SERVICE}/${LAYER}`, count: index.length, idScheme: "p-oid", villageBounds, plots: index };
   const indexStr = JSON.stringify(indexOut);
   await writeFile("data/plots.json", indexStr);
   console.log(`Wrote data/plots.json — ${index.length} plots, ~${(indexStr.length / 1048576).toFixed(1)} MB`);
