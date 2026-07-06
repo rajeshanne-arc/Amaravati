@@ -210,6 +210,16 @@
   .act-bar { flex: 1; height: 6px; background: #EDEBE1; border-radius: 3px; overflow: hidden; }
   .act-bar span { display: block; height: 100%; background: #2f4038; border-radius: 3px; }
   .act-n { font: 700 11px 'IBM Plex Sans', sans-serif; color: var(--ink); flex: none; width: 22px; text-align: right; }
+  .or-note { font-size: 11.5px; line-height: 1.5; color: #6b6455; margin: 6px 0 10px; }
+  .or-ids { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .or-id { display: inline-flex; flex-direction: column; background: #F5F3EA; border-radius: 7px; padding: 5px 9px; }
+  .or-id span { font-size: 8.5px; letter-spacing: .06em; text-transform: uppercase; color: #9a9384; }
+  .or-id b { font: 600 12px 'IBM Plex Mono', monospace; color: var(--ink); margin-top: 1px; }
+  .or-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .or-btn { background: #22312B; color: #F2EFE6; border: none; border-radius: 8px; padding: 9px 8px; font: 600 11.5px 'IBM Plex Sans', sans-serif; cursor: pointer; }
+  .or-btn:hover { background: #2f4038; }
+  .or-foot { font-size: 10.5px; line-height: 1.45; color: #9a9384; margin-top: 8px; }
+  @media print { .or-btns, .or-foot { display: none !important; } }
   .ownerplot {
     display: flex; align-items: center; gap: 8px; width: 100%; text-align: left;
     padding: 7px 6px; border: none; border-bottom: 1px solid #EFEDE2; background: transparent; cursor: pointer;
@@ -528,6 +538,6 @@
     <button id="wgo" type="button">Start searching</button>
   </div>
 </div>
-<script src="app.js?v=29"></script>
+<script src="app.js?v=30"></script>
 </body>
 </html>

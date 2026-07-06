@@ -231,6 +231,7 @@ const I18N = {
     eAllottee: "ALLOTTEE", plotsHeld: "Plots held", lVillages: "Villages", shownOnMap: "Shown on map",
     allPlots: "ALL PLOTS — TAP TO OPEN", shareList: "Share this list",
     history: "HISTORY — PERMANENT RECORD", noHistory: "No changes recorded since tracking began on",
+    orTitle: "OFFICIAL RECORDS", orIntro: "Look up this plot’s legal records on the government portals. Use the identifiers below — the plot code is copied when you tap.", orPlotCode: "Plot code", orVillage: "Village", orMandal: "Mandal", orDistrict: "District", orEC: "Encumbrance (EC)", orMV: "Market value", orPP: "Prohibited (22A)", orMB: "Land record (Mee Bhoomi)", orFoot: "These open the official AP portals. Each lookup needs a captcha and the details above — this atlas cannot fetch them for you.", orOpened: "Opening official portal — plot code copied",
     hFarmer: "Allottee", hZone: "Zone", hExtent: "Extent", hRegDate: "Registration date", hRegCode: "Registration code",
     nothingLocal: 'Nothing in the register matches "{q}".',
     searchSrv: "Search allottee names & plot codes on APCRDA server ↵",
@@ -292,6 +293,7 @@ const I18N = {
     eAllottee: "కేటాయింపుదారు", plotsHeld: "ప్లాట్ల సంఖ్య", lVillages: "గ్రామాలు", shownOnMap: "మ్యాప్‌లో చూపినవి",
     allPlots: "అన్ని ప్లాట్లు — తెరవడానికి నొక్కండి", shareList: "ఈ జాబితాను షేర్ చేయండి",
     history: "చరిత్ర — శాశ్వత రికార్డు", noHistory: "ట్రాకింగ్ ప్రారంభమైనప్పటి నుండి మార్పులు నమోదు కాలేదు —",
+    orTitle: "అధికారిక రికార్డులు", orIntro: "ఈ ప్లాట్ చట్టపరమైన రికార్డులను ప్రభుత్వ పోర్టళ్లలో చూడండి. కింది వివరాలు వాడండి — నొక్కినప్పుడు ప్లాట్ కోడ్ కాపీ అవుతుంది.", orPlotCode: "ప్లాట్ కోడ్", orVillage: "గ్రామం", orMandal: "మండలం", orDistrict: "జిల్లా", orEC: "ఎన్‌కంబ్రెన్స్ (EC)", orMV: "మార్కెట్ విలువ", orPP: "నిషేధిత (22A)", orMB: "భూ రికార్డు (మీ భూమి)", orFoot: "ఇవి అధికారిక AP పోర్టళ్లను తెరుస్తాయి. ప్రతి శోధనకు క్యాప్చా, పై వివరాలు అవసరం — ఈ అట్లాస్ వాటిని తీసుకురాలేదు.", orOpened: "అధికారిక పోర్టల్ తెరుస్తోంది — ప్లాట్ కోడ్ కాపీ అయింది",
     hFarmer: "కేటాయింపుదారు", hZone: "జోన్", hExtent: "విస్తీర్ణం", hRegDate: "రిజిస్ట్రేషన్ తేదీ", hRegCode: "రిజిస్ట్రేషన్ కోడ్",
     nothingLocal: 'రిజిస్టర్‌లో "{q}" కు సరిపోలినవి లేవు.',
     searchSrv: "APCRDA సర్వర్‌లో పేర్లు & ప్లాట్ కోడ్‌లు వెతకండి ↵",
@@ -1297,6 +1299,7 @@ function renderCard(rec, geom) {
       `</div>` +
     `</div>` +
     historyHtml(rec) +
+    officialRecordsHtml(rec) +
     `<div class="actions">` +
       `<button type="button" class="primary" id="actZoom">${esc(t("zoom"))}</button>` +
       `<button type="button" class="ghost" id="actShare">${esc(t("share"))}</button>` +
@@ -1347,6 +1350,7 @@ function renderCard(rec, geom) {
     b.classList.toggle("on", isSavedRec(rec));
   });
   $("actPrint").addEventListener("click", () => window.print());
+  wireOfficialRecords(card, rec);
   $("actCopy").addEventListener("click", async () => {
     const text = rec.code || rec.reg || String(rec.no ?? "");
     try { await navigator.clipboard.writeText(text); } catch (_) {
@@ -2011,6 +2015,65 @@ $("lyrclose").addEventListener("click", () => { $("lyrpanel").style.display = "n
 L.DomEvent.disableClickPropagation($("lyrpanel"));
 L.DomEvent.disableScrollPropagation($("lyrpanel"));
 L.DomEvent.disableClickPropagation($("btnLayers"));
+
+/* ---------------- official records hand-off ----------------
+   The AP registration and revenue portals hold the legal transaction record
+   (encumbrance history), the government market value, and the prohibited-
+   property (22A) status. None can be deep-linked to a specific plot — every
+   lookup is captcha-gated and session-based by design. So we do the honest,
+   useful thing: open the correct official portal AND show the exact
+   identifiers the user must type (survey/plot code, village, mandal, district)
+   so they arrive at the form ready. A guided front door, not a fake shortcut. */
+// The 25 core LPS villages map to three Guntur-district mandals. Villages not
+// listed fall back to blank mandal (the portal dropdown still lets them pick).
+const VILLAGE_MANDAL = {
+  // Mangalagiri mandal
+  "Kuragallu": "Mangalagiri", "Nidamarru": "Mangalagiri", "Nowlur": "Mangalagiri",
+  "Yerrabalem": "Mangalagiri", "Krishnayapalem": "Mangalagiri", "Bethapudi": "Mangalagiri",
+  // Tadepalli mandal
+  "Penumaka": "Tadepalli", "Undavalli": "Tadepalli", "Dolas Nagar": "Tadepalli",
+  // Thullur mandal (the rest of the capital-city villages)
+  "Thullur": "Thullur", "Ainavolu": "Thullur", "Abbarajupalem": "Thullur",
+  "Anantavaram": "Thullur", "Borupalem": "Thullur", "Dondapadu": "Thullur",
+  "Lingayapalem": "Thullur", "Malkapuram": "Thullur", "Mandadam": "Thullur",
+  "Modugulankapalem": "Thullur", "Nekkallu": "Thullur", "Nelapadu": "Thullur",
+  "Rayapudi": "Thullur", "Sakhamuru": "Thullur", "Uddandarayunipalem": "Thullur",
+  "Velagapudi": "Thullur", "Venkatapalem": "Thullur", "Kondrajupalem": "Thullur",
+  "Pichukalapalem": "Thullur", "Tullur": "Thullur", "Uddandarayunipalem ": "Thullur",
+};
+function mandalOf(village) { return VILLAGE_MANDAL[(village || "").trim()] || ""; }
+const REG_PORTAL = "https://registration.ap.gov.in/";
+const MEEBHOOMI_PORTAL = "https://meebhoomi.ap.gov.in/";
+
+function officialRecordsHtml(rec) {
+  const mandal = mandalOf(rec.village);
+  const idBits = [];
+  if (rec.code) idBits.push(`<span class="or-id"><span>${esc(t("orPlotCode"))}</span><b>${esc(rec.code)}</b></span>`);
+  if (rec.village) idBits.push(`<span class="or-id"><span>${esc(t("orVillage"))}</span><b>${esc(rec.village)}</b></span>`);
+  if (mandal) idBits.push(`<span class="or-id"><span>${esc(t("orMandal"))}</span><b>${esc(mandal)}</b></span>`);
+  idBits.push(`<span class="or-id"><span>${esc(t("orDistrict"))}</span><b>Guntur</b></span>`);
+  return `<div class="sect"><div class="eyebrow">${esc(t("orTitle"))}</div>` +
+    `<div class="or-note">${esc(t("orIntro"))}</div>` +
+    `<div class="or-ids">${idBits.join("")}</div>` +
+    `<div class="or-btns">` +
+      `<button type="button" class="or-btn" data-or="ec">${esc(t("orEC"))}</button>` +
+      `<button type="button" class="or-btn" data-or="mv">${esc(t("orMV"))}</button>` +
+      `<button type="button" class="or-btn" data-or="pp">${esc(t("orPP"))}</button>` +
+      `<button type="button" class="or-btn" data-or="mb">${esc(t("orMB"))}</button>` +
+    `</div>` +
+    `<div class="or-foot">${esc(t("orFoot"))}</div>` +
+  `</div>`;
+}
+function wireOfficialRecords(card, rec) {
+  card.querySelectorAll(".or-btn").forEach((b) => b.addEventListener("click", () => {
+    const which = b.dataset.or;
+    const url = which === "mb" ? MEEBHOOMI_PORTAL : REG_PORTAL;
+    // copy the plot code so the user can paste it straight into the portal form
+    if (rec.code && navigator.clipboard) { try { navigator.clipboard.writeText(rec.code); } catch (_) {} }
+    window.open(url, "_blank", "noopener");
+    toast(t("orOpened"));
+  }));
+}
 
 /* ---------------- bookmarks: my plots ----------------
    Saved by a STABLE key, not the object id. APCRDA renumbers object ids when
