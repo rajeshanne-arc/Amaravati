@@ -182,7 +182,7 @@ function highlightLocal(rec, fit) {
   if (!ll) return false;
   highlight.clearLayers();
   const poly = L.polygon(ll, HL_STYLE).addTo(highlight);
-  if (fit) { try { map.fitBounds(poly.getBounds().pad(0.6), { maxZoom: 19 }); } catch (_) {} }
+  if (fit) fitTo(poly.getBounds().pad(0.6), { maxZoom: 19 });
   return true;
 }
 
@@ -366,6 +366,26 @@ const state = {
 
 /* ---------------- map ---------------- */
 const map = L.map("map", { zoomControl: true }).setView(CONFIG.MAP_CENTER, CONFIG.MAP_ZOOM);
+
+/* ---- the only two ways this app is allowed to move the map ----
+   Leaflet's ANIMATED path can report that it started a zoom animation and then
+   silently drop the frame, leaving the map exactly where it was. Every fit in
+   this app used to be animated and wrapped in `try {} catch (_) {}`, so that
+   failure was invisible: the card would show the right plot while the map
+   stayed on the previous view — indistinguishable from "it zoomed to the wrong
+   place". Both helpers cancel any in-flight animation, move without animating
+   (which always takes effect), and LOG a genuine failure instead of hiding it. */
+function fitTo(bounds, opts) {
+  if (!bounds) return false;
+  try { map.stop(); } catch (_) {}
+  try { map.fitBounds(bounds, Object.assign({ animate: false }, opts || {})); return true; }
+  catch (e) { console.warn("[atlas] fitBounds failed:", e); return false; }
+}
+function viewTo(latlng, zoom) {
+  try { map.stop(); } catch (_) {}
+  try { map.setView(latlng, zoom, { animate: false }); return true; }
+  catch (e) { console.warn("[atlas] setView failed:", e); return false; }
+}
 L.control.scale({ imperial: false }).addTo(map);
 
 L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -1099,19 +1119,45 @@ function openPlot(key) {
   // can return the wrong twin. And regardless of what the server returns,
   // the VERIFICATION below refuses to display any feature that isn't the
   // exact plot that was asked for — a wrong plot can never render.
+  // VERIFY BY STABLE IDENTITY — never by the key we searched with.
+  // Querying `ESRI_OID = rec.oid` and then checking the result's ESRI_OID is
+  // tautological: it can only ever be true. After APCRDA renumbers its layer,
+  // that id belongs to a DIFFERENT plot and this "guard" would wave it through.
+  // The registration code (else plot_code + village) survives renumbering, so
+  // identity is checked against that, and a mismatch re-finds the plot by its
+  // stable key rather than rendering someone else's land.
+  const regOf = (x) => (x && looksLikeCode(x.reg)) ? String(x.reg).trim() : "";
   const sameAsRec = (live) => {
     if (!rec) return true;
-    if (rec.oid != null && live.oid != null) return String(live.oid) === String(rec.oid);
-    return live.code === rec.code && live.village === rec.village && String(live.no) === String(rec.no);
+    if (regOf(rec) && regOf(live)) return regOf(live) === regOf(rec);
+    if (looksLikeCode(rec.code) && looksLikeCode(live.code)) return live.code === rec.code && live.village === rec.village;
+    return String(live.no) === String(rec.no) && live.village === rec.village;
+  };
+  const stillHere = () => state.mode === "plot" && state.selectedCode === key;
+  const findByStableKey = () => {
+    const reg = regOf(rec);
+    const clause = reg
+      ? `regcode = '${reg.replace(/'/g, "''")}'`
+      : `plot_code = '${String(rec.code || "").replace(/'/g, "''")}' AND lpsvillage = '${String(rec.village || "").replace(/'/g, "''")}'`;
+    L.esri.query(esriOpts({ url: CONFIG.SERVICE + "/" + CONFIG.PLOT_LAYER }))
+      .where(clause).limit(1).returnGeometry(true)
+      .run((err, fc) => {
+        if (!stillHere()) return;
+        if (err || !fc || !fc.features.length) { renderCard(rec, null); return; }
+        const f = fc.features[0];
+        if (!sameAsRec(normalize(featureProps(f)))) { renderCard(rec, null); return; }
+        showFeature(f);
+      });
   };
   if (state.live && rec && rec.oid != null) {
     L.esri.query(esriOpts({ url: CONFIG.SERVICE + "/" + CONFIG.PLOT_LAYER }))
       .where("ESRI_OID = " + Number(rec.oid)).limit(1).returnGeometry(true)
       .run((err, fc) => {
-        if (state.mode !== "plot" || state.selectedCode !== key) return; // user moved on
+        if (!stillHere()) return; // user moved on
         if (err || !fc || !fc.features.length) { renderCard(rec, null); return; }
         const f = fc.features[0];
-        if (!sameAsRec(normalize(f.properties || {}))) { renderCard(rec, null); return; } // wrong plot — refuse
+        // id was renumbered and now points at another plot — re-find, don't render it
+        if (!sameAsRec(normalize(featureProps(f)))) { findByStableKey(); return; }
         showFeature(f);
       });
   } else if (state.live && (rec ? (rec.reg || rec.code) : key)) {
@@ -1123,10 +1169,10 @@ function openPlot(key) {
     L.esri.query(esriOpts({ url: CONFIG.SERVICE + "/" + CONFIG.PLOT_LAYER }))
       .where(clause).limit(1).returnGeometry(true)
       .run((err, fc) => {
-        if (state.mode !== "plot" || state.selectedCode !== key) return;
+        if (!stillHere()) return;
         if (err || !fc || !fc.features.length) { renderCard(rec, null); return; }
         const f = fc.features[0];
-        if (!sameAsRec(normalize(f.properties || {}))) { renderCard(rec, null); return; } // wrong plot — refuse
+        if (!sameAsRec(normalize(featureProps(f)))) { renderCard(rec, null); return; } // wrong plot — refuse
         showFeature(f);
       });
   } else {
@@ -1143,7 +1189,7 @@ function isReturnablePlot(rec) {
   return Number(rec.no) > 0 && (looksLikeCode(rec.code) || looksLikeCode(rec.reg));
 }
 function showFeature(f) {
-  const rec = normalize(f.properties || {});
+  const rec = normalize(featureProps(f));
   if (!isReturnablePlot(rec)) { showArea(rec, f.geometry); return; }
   const known = state.byCode.get(rec.id);
   if (known) rec.nbFromSnap = known.nb; // keep snapshot boundaries if live omits them
@@ -1153,7 +1199,7 @@ function showFeature(f) {
   if (f.geometry) {
     highlight.clearLayers();
     geom = L.geoJSON(f, { style: HL_STYLE }).addTo(highlight);
-    try { map.fitBounds(geom.getBounds().pad(1.2), { maxZoom: 19 }); } catch (_) {}
+    fitTo(geom.getBounds().pad(1.2), { maxZoom: 19 });
   }
   renderCard(rec, geom);
 }
@@ -1240,7 +1286,7 @@ function showArea(rec, geom) {
   const ob = card.querySelector("#ownerLink");
   if (ob) ob.addEventListener("click", () => openOwner(ob.dataset.owner));
   const zb = $("areaZoom");
-  if (zb && poly) zb.addEventListener("click", () => { try { map.fitBounds(poly.getBounds().pad(0.1)); } catch (_) {} });
+  if (zb && poly) zb.addEventListener("click", () => fitTo(poly.getBounds().pad(0.1)));
 }
 
 function historyHtml(rec) {
@@ -1316,7 +1362,7 @@ function renderCard(rec, geom) {
   const ownerBtn = card.querySelector("#ownerLink");
   if (ownerBtn) ownerBtn.addEventListener("click", () => openOwner(ownerBtn.dataset.owner));
   $("actZoom").addEventListener("click", () => {
-    if (geom) { try { map.fitBounds(geom.getBounds().pad(0.8), { maxZoom: 20 }); } catch (_) {} }
+    if (geom) { fitTo(geom.getBounds().pad(0.8), { maxZoom: 20 }); }
     else if (!highlightLocal(rec, true) && state.live && rec.id) openPlot(rec.id);
   });
   $("actShare").addEventListener("click", () => copyShare($("actShare"), { plot: rec.id }));
@@ -1440,7 +1486,7 @@ function openOwner(name) {
     const use = fitSet.length ? fitSet : placedPlots;
     let b = use[0].poly.getBounds();
     for (let i = 1; i < use.length; i++) b = b.extend(use[i].poly.getBounds());
-    try { map.fitBounds(b.pad(0.3), { maxZoom: 17 }); } catch (_) {}
+    fitTo(b.pad(0.3), { maxZoom: 17 });
   }
 
   const totalExt = plots.reduce((s, p) => s + (typeof p.ext === "number" ? p.ext : 0), 0);
@@ -1611,13 +1657,13 @@ function locateMe() {
     let E, N;
     try { [E, N] = proj4("WGS84", "APCRDA_UTM", [lon, lat]); } catch (_) { gpsNote(t("gpsNoFix")); return; }
     const vb = state.villageBounds;
-    if (!vb || !state.geoOk) { gpsNote(t("gpsNeedData")); map.setView([lat, lon], 16); return; }
+    if (!vb || !state.geoOk) { gpsNote(t("gpsNeedData")); viewTo([lat, lon], 16); return; }
     const PAD = 250; // metres of slack around village bounds
     const cands = Object.keys(vb).filter((sl) => {
       const b = vb[sl];
       return E >= b[0] - PAD && E <= b[2] + PAD && N >= b[1] - PAD && N <= b[3] + PAD;
     });
-    if (!cands.length) { gpsNote(t("gpsOutside")); map.setView([lat, lon], 15); return; }
+    if (!cands.length) { gpsNote(t("gpsOutside")); viewTo([lat, lon], 15); return; }
     const candSet = new Set(cands);
     const villagesToLoad = (state.villageNames || []).filter((v) => candSet.has(villageSlug(v)));
     Promise.all(villagesToLoad.map(loadGeo)).then(() => {
@@ -1634,7 +1680,7 @@ function locateMe() {
         if (inBox && pip(E, N, pts)) { openPlot(p.id); return; }
       }
       gpsNote(t("gpsNoPlot"));
-      map.setView([lat, lon], 17);
+      viewTo([lat, lon], 17);
     });
   }, () => { statusLine(); gpsNote(t("gpsNoFix")); }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 });
 }
