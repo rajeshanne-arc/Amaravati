@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Allotment activity — Amaravati LPS Atlas</title>
+<meta name="description" content="Changes to the APCRDA allotment record, organised by registration date. An activity report, not a sales ledger." />
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+  :root { --ink:#182420; --ink2:#26221A; --muted:#7d7768; --paper:#F1EFE7; --panel:#FBFAF4; --line:#DDD9CB; --link:#1D4E89; --faint:#9a9384; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink2); font-family:'IBM Plex Sans',system-ui,sans-serif; }
+  header { background:var(--ink); color:#F2EFE6; padding:14px 20px; display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  .wordmark { font:800 15px 'Archivo',sans-serif; letter-spacing:.2em; }
+  header .right { margin-left:auto; display:flex; align-items:center; gap:14px; }
+  header a { color:#A8E5B2; font-size:12.5px; text-decoration:none; }
+  #langtoggle { background:#22312B; color:#F2EFE6; border:1px solid #3a4a42; border-radius:8px; padding:5px 10px; font:600 11.5px 'IBM Plex Sans',sans-serif; cursor:pointer; }
+  main { max-width:1120px; margin:0 auto; padding:24px 20px 64px; }
+  h1 { font:800 25px 'Archivo',sans-serif; letter-spacing:.02em; margin:.1em 0 .5em; }
+  .banner { background:#FBF6E9; border:1px solid #EAE0C4; border-radius:10px; padding:12px 14px; font-size:12.5px; line-height:1.6; color:#6b6249; margin-bottom:18px; }
+  .banner b { color:#4a4433; }
+
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin-bottom:18px; }
+  .stat { background:var(--panel); border:1px solid var(--line); border-radius:11px; padding:12px 14px; }
+  .stat b { display:block; font:800 22px 'Archivo',sans-serif; color:var(--ink); }
+  .stat span { font-size:10.5px; letter-spacing:.04em; text-transform:uppercase; color:var(--faint); display:block; margin-top:3px; line-height:1.3; }
+
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:16px; }
+  .flabel { font:600 10px 'IBM Plex Sans',sans-serif; letter-spacing:.14em; text-transform:uppercase; color:var(--faint); margin:0 0 8px; }
+  .frow { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:12px; }
+  .frow:last-child { margin-bottom:0; }
+  .chip { background:#EFEDE4; border:1px solid transparent; border-radius:999px; padding:5px 11px; font-size:12px; color:var(--ink2); cursor:pointer; }
+  .chip:hover { background:#E6E3D7; }
+  .chip.on { background:#22312B; color:#F2EFE6; }
+  .chip b { margin-left:5px; opacity:.75; font-weight:600; }
+  input[type=date], input[type=search] { border:1px solid var(--line); border-radius:8px; padding:7px 9px; font:500 12.5px 'IBM Plex Sans',sans-serif; background:#fff; color:var(--ink); }
+  input[type=search] { min-width:230px; }
+  .btn { background:#22312B; color:#F2EFE6; border:none; border-radius:8px; padding:7px 12px; font:600 12px 'IBM Plex Sans',sans-serif; cursor:pointer; }
+  .btn.ghost { background:#fff; color:var(--ink); border:1px solid var(--line); }
+  .btn:hover { filter:brightness(1.1); }
+
+  .chart { display:flex; align-items:flex-end; gap:3px; height:120px; padding:6px 2px 0; overflow-x:auto; }
+  .bar { flex:1 0 26px; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; height:100%; }
+  .bar .fill { width:100%; background:#2f4038; border-radius:3px 3px 0 0; min-height:2px; }
+  .bar.sun .fill { background:#D8D4C6; }
+  .bar .n { font:600 10px 'IBM Plex Mono',monospace; color:var(--ink); margin-bottom:2px; }
+  .bar .d { font:500 9px 'IBM Plex Mono',monospace; color:var(--faint); margin-top:4px; white-space:nowrap; }
+  .bar.sun .d { color:#b9b3a4; }
+  .charthint { font-size:11px; color:var(--faint); margin-top:8px; }
+
+  table { width:100%; border-collapse:collapse; background:var(--panel); border:1px solid var(--line); border-radius:12px; overflow:hidden; }
+  th, td { text-align:left; padding:9px 11px; font-size:12.5px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { background:#F4F2E8; font:600 10px 'IBM Plex Sans',sans-serif; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); cursor:pointer; white-space:nowrap; user-select:none; }
+  th:hover { color:var(--ink); }
+  tr:last-child td { border-bottom:none; }
+  td.code { font:600 12px 'IBM Plex Mono',monospace; white-space:nowrap; }
+  td.date { font:600 12px 'IBM Plex Mono',monospace; white-space:nowrap; }
+  td.names { max-width:340px; }
+  .nm { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .nm.old { color:var(--muted); text-decoration:line-through; }
+  .nm.new { color:var(--ink); font-weight:600; }
+  .tag { display:inline-block; border-radius:999px; padding:2px 8px; font-size:10px; font-weight:600; white-space:nowrap; }
+  .tag.registered { background:#E1EEE4; color:#23503a; }
+  .tag.undated { background:#F3EBD8; color:#7a5e21; }
+  .tag.nameonly { background:#EDEBE1; color:#5f5b52; }
+  td a { color:var(--link); text-decoration:none; white-space:nowrap; }
+  td a:hover { text-decoration:underline; }
+  .empty { padding:28px; text-align:center; color:var(--muted); font-size:13px; }
+  .foot { margin-top:22px; font-size:12px; line-height:1.6; color:var(--muted); }
+  .foot a { color:var(--link); }
+
+  .te { display:none; }
+  body.lang-te .en { display:none; }
+  body.lang-te .te { display:inline; }
+  body.lang-te span.te { display:inline; }
+  @media print { header .right, .panel .btn, #langtoggle { display:none !important; } body { background:#fff; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="wordmark">AMARAVATI · LPS ATLAS</div>
+  <div class="right">
+    <button id="langtoggle" type="button">తెలుగు</button>
+    <a href="./">← <span class="en">Back to the map</span><span class="te">మ్యాప్‌కి తిరిగి</span></a>
+  </div>
+</header>
+
+<main>
+  <h1><span class="en">Allotment activity</span><span class="te">అలాట్‌మెంట్ కార్యాశీలత</span></h1>
+
+  <div class="banner">
+    <span class="en"><b>Read this first.</b> These are changes to APCRDA's allotment record, detected by a nightly comparison. A new name on a plot may be a purchase, an inheritance, a family partition, or a records correction — <b>this data cannot tell you which</b>. One change in this very log replaces eight family members' names with two of the same family: that is a partition, not a sale. Where APCRDA supplies a registration date, it is shown; <code>01/01/1900</code> is their placeholder for "unknown". Nothing here is proof of a transaction. Verify any specific plot against the official record.</span>
+    <span class="te"><b>ముందుగా చదవండి.</b> ఇవి APCRDA అలాట్‌మెంట్ రికార్డులో మార్పులు, ప్రతి రాత్రి పోలిక ద్వారా గుర్తించినవి. ప్లాట్‌పై కొత్త పేరు అంటే కొనుగోలు కావచ్చు, వారసత్వం కావచ్చు, కుటుంబ విభజన కావచ్చు, లేదా రికార్డు దిద్దుబాటు కావచ్చు — <b>ఏదో ఈ డేటా చెప్పలేదు</b>. ఇది ఏ లావాదేవీకీ రుజువు కాదు. అధికారిక రికార్డులో నిర్ధారించుకోండి.</span>
+  </div>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="panel">
+    <div class="flabel"><span class="en">Filters</span><span class="te">ఫిల్టర్లు</span></div>
+    <div class="frow" id="typeChips"></div>
+    <div class="frow">
+      <label style="font-size:12px;color:var(--muted)"><span class="en">From</span><span class="te">నుండి</span></label>
+      <input type="date" id="fromDate" />
+      <label style="font-size:12px;color:var(--muted)"><span class="en">To</span><span class="te">వరకు</span></label>
+      <input type="date" id="toDate" />
+      <input type="search" id="q" placeholder="Search name, plot code, village…" />
+      <button class="btn ghost" id="resetBtn"><span class="en">Reset</span><span class="te">రీసెట్</span></button>
+      <button class="btn ghost" id="csvBtn"><span class="en">Download CSV</span><span class="te">CSV డౌన్‌లోడ్</span></button>
+      <button class="btn ghost" id="printBtn"><span class="en">Print</span><span class="te">ప్రింట్</span></button>
+    </div>
+    <div class="flabel" style="margin-top:4px"><span class="en">Villages — tap to filter</span><span class="te">గ్రామాలు — ఫిల్టర్ కోసం నొక్కండి</span></div>
+    <div class="frow" id="villageChips"></div>
+  </div>
+
+  <div class="panel">
+    <div class="flabel"><span class="en">Registered transfers by registration date</span><span class="te">రిజిస్ట్రేషన్ తేదీ వారీగా</span></div>
+    <div class="chart" id="chart"></div>
+    <div class="charthint" id="chartHint"></div>
+  </div>
+
+  <div id="tableWrap"></div>
+
+  <p class="foot" id="foot"></p>
+</main>
+
+<script>
+(function () {
+  var PLACEHOLDER = "01/01/1900";
+  var T = {
+    en: {
+      registered: "Registered transfer", undated: "Undated record change", nameonly: "Name change only",
+      all: "All", statRegistered: "registered transfers", statUndated: "undated record changes",
+      statNameOnly: "name-only changes", statVillages: "villages affected", statRange: "registration dates span",
+      thDate: "Reg. date", thVillage: "Village", thPlot: "Plot code", thFrom: "Previous allottee",
+      thTo: "New allottee", thType: "Type", thOpen: "",
+      openAtlas: "Open in atlas ↗", none: "No changes match these filters.",
+      chartHint: "Bars show registered transfers on each date, as recorded by APCRDA. Grey = Sunday (registration offices closed).",
+      noChart: "No dated registrations in this selection.",
+      foot: "Source: APCRDA LPS plot layer, compared nightly. Tracking began {since}. Registration dates are APCRDA's own field. This is an unofficial viewer — verify any plot at ",
+      detected: "detected"
+    },
+    te: {
+      registered: "నమోదైన బదిలీ", undated: "తేదీ లేని మార్పు", nameonly: "పేరు మార్పు మాత్రమే",
+      all: "అన్నీ", statRegistered: "నమోదైన బదిలీలు", statUndated: "తేదీ లేని మార్పులు",
+      statNameOnly: "పేరు మాత్రమే మార్పులు", statVillages: "గ్రామాలు", statRange: "రిజిస్ట్రేషన్ తేదీల విస్తీర్ణం",
+      thDate: "రిజి. తేదీ", thVillage: "గ్రామం", thPlot: "ప్లాట్ కోడ్", thFrom: "గత కేటాయింపుదారు",
+      thTo: "కొత్త కేటాయింపుదారు", thType: "రకం", thOpen: "",
+      openAtlas: "అట్లాస్‌లో చూడు ↗", none: "ఈ ఫిల్టర్లకు మార్పులు లేవు.",
+      chartHint: "APCRDA నమోదు చేసిన తేదీల వారీగా బదిలీలు. బూడిద = ఆదివారం (కార్యాలయాలు మూసివేత).",
+      noChart: "ఈ ఎంపికలో తేదీ ఉన్న రిజిస్ట్రేషన్లు లేవు.",
+      foot: "మూలం: APCRDA LPS ప్లాట్ లేయర్, ప్రతి రాత్రి పోలిక. ట్రాకింగ్ ప్రారంభం {since}. ఇది అనధికారిక వ్యూయర్ — ప్రతి ప్లాట్‌ను నిర్ధారించుకోండి: ",
+      detected: "గుర్తించినది"
+    }
+  };
+  var LANG = (localStorage.getItem("lps-lang") === "te") ? "te" : "en";
+  function t(k) { return (T[LANG] && T[LANG][k]) || T.en[k]; }
+  if (LANG === "te") document.body.classList.add("lang-te");
+
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function parseDMY(s) {
+    var m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(String(s || "").trim());
+    if (!m) return null;
+    var d = new Date(+m[3], +m[2] - 1, +m[1]);
+    return isNaN(d.getTime()) ? null : d;
+  }
+  function iso(d) {
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }
+  function short(d) { return String(d.getDate()).padStart(2, "0") + "/" + String(d.getMonth() + 1).padStart(2, "0"); }
+
+  var rows = [], since = "";
+  var F = { types: new Set(["registered", "undated", "nameonly"]), villages: new Set(), from: "", to: "", q: "" };
+  var sortKey = "regDate", sortDir = -1;
+
+  /* ---- read filters from the URL so a view can be shared ---- */
+  function readURL() {
+    var p = new URLSearchParams(location.search);
+    if (p.get("type")) F.types = new Set(p.get("type").split(",").filter(Boolean));
+    if (p.get("village")) F.villages = new Set(p.get("village").split(",").filter(Boolean));
+    F.from = p.get("from") || ""; F.to = p.get("to") || ""; F.q = p.get("q") || "";
+  }
+  function writeURL() {
+    var p = new URLSearchParams();
+    if (F.types.size && F.types.size < 3) p.set("type", [].concat(Array.from(F.types)).join(","));
+    if (F.villages.size) p.set("village", Array.from(F.villages).join(","));
+    if (F.from) p.set("from", F.from);
+    if (F.to) p.set("to", F.to);
+    if (F.q) p.set("q", F.q);
+    var qs = p.toString();
+    history.replaceState(null, "", qs ? "?" + qs : location.pathname);
+  }
+
+  /* ---- build one row per ownership change, joined to its registration date ---- */
+  function build(changes) {
+    var regMap = new Map();
+    changes.forEach(function (c) { if (c.f === "reg_date_1") regMap.set(c.key + "|" + c.d, c); });
+    return changes.filter(function (c) { return c.f === "farmer_n"; }).map(function (c) {
+      var reg = regMap.get(c.key + "|" + c.d) || null;
+      var raw = reg ? String(reg.to || "").trim() : "";
+      var rd = (raw && raw !== PLACEHOLDER) ? parseDMY(raw) : null;
+      var type = rd ? "registered" : (reg ? "undated" : "nameonly");
+      var parts = String(c.key || "").split("#");
+      return {
+        plot: parts[0] || "", village: c.village || parts[1] || "",
+        from: c.from || "", to: c.to || "", detected: c.d || "",
+        regDate: rd, regIso: rd ? iso(rd) : "", type: type
+      };
+    });
+  }
+
+  function passes(r, ignoreVillage) {
+    if (!F.types.has(r.type)) return false;
+    if (!ignoreVillage && F.villages.size && !F.villages.has(r.village)) return false;
+    if (F.from && (!r.regIso || r.regIso < F.from)) return false;
+    if (F.to && (!r.regIso || r.regIso > F.to)) return false;
+    if (F.q) {
+      var hay = (r.plot + " " + r.village + " " + r.from + " " + r.to).toLowerCase();
+      if (hay.indexOf(F.q.toLowerCase()) === -1) return false;
+    }
+    return true;
+  }
+
+  function renderStats(list) {
+    var reg = list.filter(function (r) { return r.type === "registered"; });
+    var und = list.filter(function (r) { return r.type === "undated"; });
+    var nom = list.filter(function (r) { return r.type === "nameonly"; });
+    var vills = new Set(list.map(function (r) { return r.village; }).filter(Boolean));
+    var dates = reg.map(function (r) { return r.regIso; }).sort();
+    var span = dates.length ? (dates[0] + " → " + dates[dates.length - 1]) : "—";
+    document.getElementById("stats").innerHTML =
+      stat(reg.length, t("statRegistered")) + stat(und.length, t("statUndated")) +
+      stat(nom.length, t("statNameOnly")) + stat(vills.size, t("statVillages")) +
+      '<div class="stat"><b style="font-size:13px;line-height:1.7">' + esc(span) + "</b><span>" + esc(t("statRange")) + "</span></div>";
+  }
+  function stat(n, label) { return '<div class="stat"><b>' + n + "</b><span>" + esc(label) + "</span></div>"; }
+
+  function renderTypeChips(all) {
+    var counts = { registered: 0, undated: 0, nameonly: 0 };
+    all.forEach(function (r) { counts[r.type]++; });
+    var host = document.getElementById("typeChips");
+    host.innerHTML = ["registered", "undated", "nameonly"].map(function (k) {
+      return '<button class="chip' + (F.types.has(k) ? " on" : "") + '" data-type="' + k + '">' +
+        esc(t(k)) + "<b>" + counts[k] + "</b></button>";
+    }).join("");
+    host.querySelectorAll("[data-type]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var k = b.dataset.type;
+        if (F.types.has(k)) F.types.delete(k); else F.types.add(k);
+        if (!F.types.size) F.types = new Set(["registered", "undated", "nameonly"]);
+        render();
+      });
+    });
+  }
+
+  function renderVillageChips(all) {
+    // counts respect every filter except the village filter itself
+    var counts = {};
+    all.forEach(function (r) { if (passes(r, true) && r.village) counts[r.village] = (counts[r.village] || 0) + 1; });
+    var names = Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a] || a.localeCompare(b); });
+    var host = document.getElementById("villageChips");
+    host.innerHTML = '<button class="chip' + (F.villages.size ? "" : " on") + '" data-village="__ALL__">' + esc(t("all")) + "</button>" +
+      names.map(function (v) {
+        return '<button class="chip' + (F.villages.has(v) ? " on" : "") + '" data-village="' + esc(v) + '">' +
+          esc(v) + "<b>" + counts[v] + "</b></button>";
+      }).join("");
+    host.querySelectorAll("[data-village]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var v = b.dataset.village;
+        if (v === "__ALL__") F.villages.clear();
+        else if (F.villages.has(v)) F.villages.delete(v);
+        else F.villages.add(v);
+        render();
+      });
+    });
+  }
+
+  function renderChart(list) {
+    var reg = list.filter(function (r) { return r.regDate; });
+    var host = document.getElementById("chart");
+    var hint = document.getElementById("chartHint");
+    if (!reg.length) { host.innerHTML = ""; hint.textContent = t("noChart"); return; }
+    var counts = {};
+    reg.forEach(function (r) { counts[r.regIso] = (counts[r.regIso] || 0) + 1; });
+    var keys = Object.keys(counts).sort();
+    var start = new Date(keys[0] + "T00:00:00"), end = new Date(keys[keys.length - 1] + "T00:00:00");
+    var days = [], peak = 0;
+    for (var d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      var k = iso(d), n = counts[k] || 0;
+      if (n > peak) peak = n;
+      days.push({ d: new Date(d), k: k, n: n });
+    }
+    host.innerHTML = days.map(function (x) {
+      var h = peak ? Math.round((x.n / peak) * 88) : 0;
+      var sun = x.d.getDay() === 0;
+      return '<div class="bar' + (sun ? " sun" : "") + '" title="' + x.k + ": " + x.n + '">' +
+        '<span class="n">' + (x.n || "") + "</span>" +
+        '<span class="fill" style="height:' + Math.max(h, x.n ? 4 : 1) + 'px"></span>' +
+        '<span class="d">' + short(x.d) + "</span></div>";
+    }).join("");
+    hint.textContent = t("chartHint");
+  }
+
+  function renderTable(list) {
+    var cols = [
+      { k: "regDate", label: t("thDate") }, { k: "village", label: t("thVillage") },
+      { k: "plot", label: t("thPlot") }, { k: "from", label: t("thFrom") },
+      { k: "to", label: t("thTo") }, { k: "type", label: t("thType") }, { k: "", label: "" }
+    ];
+    var sorted = list.slice().sort(function (a, b) {
+      var av, bv;
+      if (sortKey === "regDate") { av = a.regIso || ""; bv = b.regIso || ""; }
+      else { av = String(a[sortKey] || ""); bv = String(b[sortKey] || ""); }
+      if (av < bv) return -1 * sortDir;
+      if (av > bv) return 1 * sortDir;
+      return 0;
+    });
+    var head = "<tr>" + cols.map(function (c) {
+      var arrow = (c.k && c.k === sortKey) ? (sortDir === 1 ? " ↑" : " ↓") : "";
+      return "<th" + (c.k ? ' data-sort="' + c.k + '"' : "") + ">" + esc(c.label) + arrow + "</th>";
+    }).join("") + "</tr>";
+    var body = sorted.map(function (r) {
+      var date = r.regIso ? esc(r.regIso) : '<span style="color:var(--faint)">' + esc(t("detected")) + " " + esc(r.detected) + "</span>";
+      return "<tr>" +
+        '<td class="date">' + date + "</td>" +
+        "<td>" + esc(r.village) + "</td>" +
+        '<td class="code">' + esc(r.plot) + "</td>" +
+        '<td class="names"><span class="nm old" title="' + esc(r.from) + '">' + esc(r.from || "—") + "</span></td>" +
+        '<td class="names"><span class="nm new" title="' + esc(r.to) + '">' + esc(r.to || "—") + "</span></td>" +
+        '<td><span class="tag ' + r.type + '">' + esc(t(r.type)) + "</span></td>" +
+        '<td><a href="./?plot=' + encodeURIComponent(r.plot) + '" target="_blank" rel="noopener">' + esc(t("openAtlas")) + "</a></td>" +
+      "</tr>";
+    }).join("");
+    document.getElementById("tableWrap").innerHTML = sorted.length
+      ? "<table><thead>" + head + "</thead><tbody>" + body + "</tbody></table>"
+      : '<div class="panel empty">' + esc(t("none")) + "</div>";
+    document.querySelectorAll("th[data-sort]").forEach(function (th) {
+      th.addEventListener("click", function () {
+        var k = th.dataset.sort;
+        if (sortKey === k) sortDir = -sortDir; else { sortKey = k; sortDir = (k === "regDate") ? -1 : 1; }
+        render();
+      });
+    });
+  }
+
+  function render() {
+    var list = rows.filter(function (r) { return passes(r, false); });
+    renderTypeChips(rows);
+    renderVillageChips(rows);
+    renderStats(list);
+    renderChart(list);
+    renderTable(list);
+    document.getElementById("foot").innerHTML =
+      esc(t("foot").replace("{since}", since || "—")) +
+      '<a href="https://gis.apcrda.org/lps/index.html" target="_blank" rel="noopener">gis.apcrda.org/lps</a>.';
+    writeURL();
+  }
+
+  function toCSV(list) {
+    var head = ["registration_date", "detected_on", "village", "plot_code", "previous_allottee", "new_allottee", "type"];
+    var esc2 = function (v) { return '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"'; };
+    return [head.join(",")].concat(list.map(function (r) {
+      return [r.regIso, r.detected, r.village, r.plot, r.from, r.to, r.type].map(esc2).join(",");
+    })).join("\n");
+  }
+
+  /* ---- wiring ---- */
+  document.getElementById("langtoggle").addEventListener("click", function () {
+    LANG = (LANG === "te") ? "en" : "te";
+    try { localStorage.setItem("lps-lang", LANG); } catch (e) {}
+    document.body.classList.toggle("lang-te", LANG === "te");
+    this.textContent = (LANG === "te") ? "English" : "\u0c24\u0c46\u0c32\u0c41\u0c17\u0c41";
+    document.getElementById("q").placeholder = (LANG === "te")
+      ? "\u0c2a\u0c47\u0c30\u0c41, \u0c2a\u0c4d\u0c32\u0c3e\u0c1f\u0c4d \u0c15\u0c4b\u0c21\u0c4d, \u0c17\u0c4d\u0c30\u0c3e\u0c2e\u0c02 \u0c35\u0c46\u0c24\u0c15\u0c02\u0c21\u0c3f\u2026"
+      : "Search name, plot code, village\u2026";
+    render();
+  });
+  document.getElementById("langtoggle").textContent = (LANG === "te") ? "English" : "\u0c24\u0c46\u0c32\u0c41\u0c17\u0c41";
+
+  document.getElementById("fromDate").addEventListener("change", function () { F.from = this.value; render(); });
+  document.getElementById("toDate").addEventListener("change", function () { F.to = this.value; render(); });
+  var qt;
+  document.getElementById("q").addEventListener("input", function () {
+    var v = this.value; clearTimeout(qt); qt = setTimeout(function () { F.q = v; render(); }, 180);
+  });
+  document.getElementById("resetBtn").addEventListener("click", function () {
+    F = { types: new Set(["registered", "undated", "nameonly"]), villages: new Set(), from: "", to: "", q: "" };
+    document.getElementById("fromDate").value = ""; document.getElementById("toDate").value = "";
+    document.getElementById("q").value = ""; render();
+  });
+  document.getElementById("printBtn").addEventListener("click", function () { window.print(); });
+  document.getElementById("csvBtn").addEventListener("click", function () {
+    var list = rows.filter(function (r) { return passes(r, false); });
+    var blob = new Blob([toCSV(list)], { type: "text/csv;charset=utf-8" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "amaravati-allotment-activity.csv";
+    a.click(); URL.revokeObjectURL(a.href);
+  });
+
+  readURL();
+  document.getElementById("fromDate").value = F.from;
+  document.getElementById("toDate").value = F.to;
+  document.getElementById("q").value = F.q;
+
+  fetch("data/changes.json?vc=" + Date.now(), { cache: "no-store" })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (j) {
+      if (!j || !Array.isArray(j.changes)) { document.getElementById("tableWrap").innerHTML = '<div class="panel empty">' + esc(t("none")) + "</div>"; return; }
+      since = String(j.since || "").slice(0, 10);
+      rows = build(j.changes);
+      render();
+    })
+    .catch(function () {
+      document.getElementById("tableWrap").innerHTML = '<div class="panel empty">' + esc(t("none")) + "</div>";
+    });
+})();
+</script>
+</body>
+</html>

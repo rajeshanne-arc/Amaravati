@@ -249,8 +249,7 @@ const I18N = {
     gpsTitle: "Which plot am I standing on?", gpsLocating: "Finding your location…", gpsNoFix: "Couldn't get your location — allow location access and try again.", gpsOutside: "You don't appear to be inside the LPS plotted area.", gpsNoPlot: "You're inside the LPS area, but not on a recorded plot.", gpsNeedData: "GPS lookup needs the latest data — run the Update LPS snapshot action once.",
     myPlots: "My plots", myPlotsEmpty: "No saved plots yet — open a plot and tap ☆ to save it.", saveT: "Save this plot", savedT: "Saved — tap to remove",
     printRec: "Print record",
-    recentChanges: "Recent changes", feedTitle: "RECENT CHANGES — ALL PLOTS", feedEmpty: "No changes recorded yet. The nightly comparison will list ownership, zone and registration changes here, permanently.",
-    actTitle: "ALLOTMENT ACTIVITY", actDisclaimer: "These are changes to the allotment record — an activity signal, not confirmed sales. A name change may be a correction, inheritance, or reassignment, not only a purchase. Verify any specific plot on the official record.", actOwnerChanges: "ownership record changes", actDaysActive: "days with activity", actVillages: "villages affected", actByVillage: "Most active villages", actTimeline: "By date (ownership record changes)",
+    recentChanges: "Recent changes",
     swipeT: "Compare with satellite", swipeOffT: "Turn off compare",
     collapseT: "Hide list", expandT: "Show list", legendTitle: "Zone legend", legend: "Legend",
     legendFilterHint: "Tap a zone to show only those plots. Pick a village to narrow further.", legendClear: "Show all zones",
@@ -311,8 +310,7 @@ const I18N = {
     gpsTitle: "నేను ఏ ప్లాట్‌పై నిలబడి ఉన్నాను?", gpsLocating: "మీ స్థానం కనుగొంటోంది…", gpsNoFix: "స్థానం లభించలేదు — లొకేషన్ అనుమతి ఇచ్చి మళ్లీ ప్రయత్నించండి.", gpsOutside: "మీరు LPS ప్లాట్ ప్రాంతంలో లేనట్లు కనిపిస్తోంది.", gpsNoPlot: "మీరు LPS ప్రాంతంలో ఉన్నారు, కానీ నమోదైన ప్లాట్‌పై లేరు.", gpsNeedData: "GPS శోధనకు తాజా డేటా అవసరం — Update LPS snapshot ఒకసారి రన్ చేయండి.",
     myPlots: "నా ప్లాట్లు", myPlotsEmpty: "సేవ్ చేసిన ప్లాట్లు లేవు — ప్లాట్ తెరిచి ☆ నొక్కండి.", saveT: "ఈ ప్లాట్ సేవ్ చేయండి", savedT: "సేవ్ అయింది — తీసేయడానికి నొక్కండి",
     printRec: "రికార్డు ప్రింట్",
-    recentChanges: "ఇటీవలి మార్పులు", feedTitle: "ఇటీవలి మార్పులు — అన్ని ప్లాట్లు", feedEmpty: "ఇంకా మార్పులు నమోదు కాలేదు. రాత్రి పోలిక ద్వారా యాజమాన్య, జోన్, రిజిస్ట్రేషన్ మార్పులు ఇక్కడ శాశ్వతంగా కనిపిస్తాయి.",
-    actTitle: "అలాట్‌మెంట్ కార్యాశీలత", actDisclaimer: "ఇవి అలాట్‌మెంట్ రికార్డులో మార్పులు — క్రయ-విక్రయాలు కాదు. పేరు మార్పు దిద్దుబడి, వారసత్వం లేదా పునాలోకేశన్ కావచ్చు, కొనుగోలు మాత్రమే కాదు. అధికారిక రికార్డులో ధర్మీకరించండి.", actOwnerChanges: "యాజమాన్య మార్పులు", actDaysActive: "క్రియాశీలత రోజులు", actVillages: "గ్రామాలు", actByVillage: "అత్యంత క్రియాశీల గ్రామాలు", actTimeline: "తేదీ వారీగా (యాజమాన్య మార్పులు)",
+    recentChanges: "ఇటీవలి మార్పులు",
     swipeT: "\u0c36\u0c3e\u0c1f\u0c3f\u0c32\u0c48\u0c1f\u0c4d\u200c\u0c24\u0c4b \u0c2a\u0c4b\u0c32\u0c4d\u0c1a\u0c02\u0c21\u0c3f", swipeOffT: "\u0c2a\u0c4b\u0c32\u0c3f\u0c15 \u0c06\u0c2a\u0c02\u0c21\u0c3f",
     collapseT: "\u0c1c\u0c3e\u0c2c\u0c3f\u0c24\u0c3e \u0c26\u0c3e\u0c1a\u0c41", expandT: "\u0c1c\u0c3e\u0c2c\u0c3f\u0c24\u0c3e \u0c1a\u0c42\u0c2a\u0c41", legendTitle: "\u0c1c\u0c4b\u0c28\u0c4d \u0c32\u0c46\u0c1c\u0c46\u0c02\u0c21\u0c4d", legend: "\u0c32\u0c46\u0c1c\u0c46\u0c02\u0c21\u0c4d",
     legendFilterHint: "\u0c06 \u0c2a\u0c4d\u0c32\u0c3e\u0c1f\u0c4d\u0c32\u0c28\u0c47 \u0c1a\u0c42\u0c2a\u0c21\u0c3e\u0c28\u0c3f\u0c15\u0c3f \u0c1c\u0c4b\u0c28\u0c4d \u0c28\u0c4a\u0c15\u0c4d\u0c15\u0c02\u0c21\u0c3f. \u0c17\u0c4d\u0c30\u0c3e\u0c2e\u0c02 \u0c0e\u0c02\u0c1a\u0c41\u0c15\u0c4b\u0c02\u0c21\u0c3f.", legendClear: "\u0c05\u0c28\u0c4d\u0c28\u0c3f \u0c1c\u0c4b\u0c28\u0c4d\u0c32\u0c41 \u0c1a\u0c42\u0c2a\u0c41",
@@ -1589,7 +1587,11 @@ function applyDeepLink() {
   const owner = sp.get("owner");
   if (plot) {
     const rec = state.byCode.get(plot) || state.byCode.get(plot.toUpperCase());
-    if (rec) openPlot(rec.id);
+    // A plot code is the stable, shareable key (object ids get renumbered), so
+    // if it isn't in the local register — a vacant or allocated parcel, say —
+    // hand the code to openPlot, which resolves it live rather than doing
+    // nothing at all.
+    openPlot(rec ? rec.id : plot);
   } else if (owner) {
     openOwner(owner);
   }
@@ -2177,70 +2179,12 @@ $("mybtn").addEventListener("click", () => {
 });
 
 /* ---------------- recent changes feed ---------------- */
-function openFeed() {
-  if (!state.changes) return;
-  state.mode = "feed"; state.selectedCode = null; state.owner = null;
-  highlight.clearLayers();
-  const all = (state.changes.raw || []).slice();
-  // Activity metrics. Ownership-record changes are the closest signal to a
-  // transfer, but we NEVER call them sales — an allottee-name change can be a
-  // correction, a legal-heir succession, or an administrative reassignment as
-  // easily as a purchase. We surface them honestly as "ownership record
-  // changes", an activity indicator, not a transaction ledger.
-  const owner = all.filter((c) => c.f === "farmer_n");
-  const byDate = new Map();          // date -> count (ownership changes)
-  const byVillage = new Map();       // village -> count (ownership changes)
-  for (const c of owner) {
-    const d = (c.d || "").slice(0, 10);
-    byDate.set(d, (byDate.get(d) || 0) + 1);
-    const v = villageOfChange(c);
-    if (v) byVillage.set(v, (byVillage.get(v) || 0) + 1);
-  }
-  const dates = [...byDate.entries()].sort((a, b) => b[0].localeCompare(a[0]));
-  const villages = [...byVillage.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8);
-  const peak = dates.reduce((m, [, n]) => Math.max(m, n), 0) || 1;
-
-  // date-grouped list of ownership changes (most recent first)
-  const groups = dates.map(([d, n]) => {
-    const rows = owner.filter((c) => (c.d || "").slice(0, 10) === d).map((c) =>
-      `<button type="button" class="ownerplot" data-code="${esc(c.id)}">` +
-        `<span class="op-owner">${esc(c.from || "\u2014")} \u2192 <b>${esc(c.to || "\u2014")}</b></span>` +
-        `<span class="op-vil">${esc(villageOfChange(c) || "")}</span>` +
-      `</button>`).join("");
-    const bar = Math.round((n / peak) * 100);
-    return `<div class="act-day"><div class="act-day-h"><span class="act-date">${esc(d)}</span>` +
-      `<span class="act-bar"><span style="width:${bar}%"></span></span>` +
-      `<span class="act-n">${n}</span></div>${rows}</div>`;
-  }).join("");
-
-  const villageChips = villages.map(([v, n]) =>
-    `<span class="act-vchip">${esc(v)} <b>${n}</b></span>`).join("");
-
-  const card = $("card");
-  card.innerHTML =
-    `<button type="button" class="close" aria-label="Close">\u2715</button>` +
-    `<div class="eyebrow">${esc(t("actTitle"))}</div>` +
-    `<div class="act-note">${esc(t("actDisclaimer"))}</div>` +
-    `<div class="act-stats">` +
-      `<div class="act-stat"><b>${inr(owner.length)}</b><span>${esc(t("actOwnerChanges"))}</span></div>` +
-      `<div class="act-stat"><b>${inr(dates.length)}</b><span>${esc(t("actDaysActive"))}</span></div>` +
-      `<div class="act-stat"><b>${inr(byVillage.size)}</b><span>${esc(t("actVillages"))}</span></div>` +
-    `</div>` +
-    (villageChips ? `<div class="act-vh">${esc(t("actByVillage"))}</div><div class="act-vchips">${villageChips}</div>` : "") +
-    `<div class="act-lh">${esc(t("actTimeline"))}</div>` +
-    `<div class="ownerlist" style="max-height:44vh;margin-top:4px;">${groups || `<div class="s-note">${esc(t("feedEmpty"))}</div>`}</div>`;
-  card.style.display = "block";
-  card.querySelector(".close").addEventListener("click", closeCard);
-  card.querySelectorAll(".ownerplot").forEach((b) => b.addEventListener("click", () => openPlot(b.dataset.code)));
-}
-// A change record stores the plot id; resolve its village from the register if
-// present, else from the change record's own snapshot fields when available.
-function villageOfChange(c) {
-  if (c.village) return c.village;
-  const r = state.byCode.get(c.id);
-  return r ? r.village : "";
-}
-$("feedbtn").addEventListener("click", openFeed);
+/* "Recent changes" opens the full activity report in its own tab. The report
+   organises events by APCRDA's own registration date rather than the day our
+   nightly job noticed them, so one bulk republish cannot masquerade as a day
+   of activity. It links back to each plot by plot code — a stable key that
+   survives APCRDA renumbering its object ids. */
+$("feedbtn").addEventListener("click", () => window.open("activity.html", "_blank", "noopener"));
 
 /* ---------------- welcome overlay (first visit) ---------------- */
 (function welcome() {
