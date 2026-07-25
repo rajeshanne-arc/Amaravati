@@ -1,5 +1,5 @@
 {
-  "generated": "2026-07-24T22:34:01.971Z",
+  "generated": "2026-07-25T22:16:23.654Z",
   "count": 2,
   "conflicts": [
     {
@@ -12,7 +12,7 @@
         "farmer": "Chillara Veeranjaneyulu",
         "ext": 150
       },
-      "oid": 61724
+      "oid": 61835
     },
     {
       "key": "22-716-4493-90-U2#Nowlur",
@@ -24,7 +24,7 @@
         "farmer": "APCRDA",
         "ext": 98.18126394
       },
-      "oid": 92056
+      "oid": 92068
     }
   ]
 }
