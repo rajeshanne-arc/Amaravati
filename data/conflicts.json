@@ -1,6 +1,6 @@
 {
-  "generated": "2026-07-29T22:27:06.614Z",
-  "count": 11,
+  "generated": "2026-07-30T22:33:44.359Z",
+  "count": 12,
   "conflicts": [
     {
       "key": "6-349-8888-165-SS1#",
@@ -12,7 +12,7 @@
         "farmer": "Assembly",
         "ext": 37.20969641
       },
-      "oid": 5522
+      "oid": 3710
     },
     {
       "key": "6-349-8888-165-SS1#",
@@ -24,7 +24,7 @@
         "farmer": "Assembly",
         "ext": 0.63309434
       },
-      "oid": 13416
+      "oid": 3712
     },
     {
       "key": "6-349-8888-165-SS1#",
@@ -36,7 +36,7 @@
         "farmer": "Assembly",
         "ext": 6.76023902
       },
-      "oid": 27755
+      "oid": 3715
     },
     {
       "key": "6-349-8888-165-SS1#",
@@ -48,7 +48,7 @@
         "farmer": "Assembly",
         "ext": 10.34309238
       },
-      "oid": 28368
+      "oid": 3716
     },
     {
       "key": "6-349-8888-165-SS1#",
@@ -60,7 +60,7 @@
         "farmer": "Assembly",
         "ext": 17.02246955
       },
-      "oid": 47858
+      "oid": 3709
     },
     {
       "key": "6-349-8888-165-SS1#",
@@ -72,7 +72,19 @@
         "farmer": "Assembly",
         "ext": 6.76024019
       },
-      "oid": 49526
+      "oid": 3717
+    },
+    {
+      "key": "19-822-5476-26-H4#Undavalli",
+      "kept": {
+        "farmer": "Burramukku Pothuraju Reddy",
+        "ext": 150.00039423
+      },
+      "dropped": {
+        "farmer": "Burramukku Pothuraju Reddy",
+        "ext": 150.00039414
+      },
+      "oid": 59159
     },
     {
       "key": "22-705-5165-16-A2#Penumaka",
@@ -84,7 +96,7 @@
         "farmer": "Chillara Veeranjaneyulu",
         "ext": 150
       },
-      "oid": 61892
+      "oid": 63690
     },
     {
       "key": "6-349-8888-165-SS1#",
@@ -96,7 +108,7 @@
         "farmer": "Assembly",
         "ext": 10.8962614
       },
-      "oid": 75987
+      "oid": 3714
     },
     {
       "key": "6-349-8888-165-SS1#",
@@ -108,7 +120,7 @@
         "farmer": "Assembly",
         "ext": 6.77963292
       },
-      "oid": 83519
+      "oid": 3708
     },
     {
       "key": "6-349-8888-165-SS1#",
@@ -120,7 +132,7 @@
         "farmer": "Assembly",
         "ext": 1.40448286
       },
-      "oid": 88780
+      "oid": 3711
     },
     {
       "key": "22-716-4493-90-U2#Nowlur",
@@ -132,7 +144,7 @@
         "farmer": "APCRDA",
         "ext": 98.18126394
       },
-      "oid": 92313
+      "oid": 58799
     }
   ]
 }
