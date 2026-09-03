@@ -94,6 +94,7 @@
   </div>
 
   <div class="stats" id="stats"></div>
+  <div class="banner" id="coverage" style="display:none"></div>
 
   <div class="panel">
     <div class="flabel"><span class="en">Filters</span><span class="te">ఫిల్టర్లు</span></div>
@@ -135,6 +136,7 @@
       thTo: "New allottee", thType: "Type", thOpen: "",
       openAtlas: "Open in atlas ↗", none: "No changes match these filters.",
       chartHint: "Bars show registered transfers on each date, as recorded by APCRDA. Grey = Sunday (registration offices closed).",
+      coverage: "<b>About the dates.</b> APCRDA last populated its registration-date field on {last}. Every ownership change recorded since then arrives with no registration date, so it is listed as <b>Name change only</b> — that is a gap in APCRDA's data, not an absence of activity. Dated transfers currently span {from} to {to}. Filtering to a later date range will correctly show nothing.",
       noChart: "No dated registrations in this selection.",
       foot: "Source: APCRDA LPS plot layer, compared nightly. Tracking began {since}. Registration dates are APCRDA's own field. This is an unofficial viewer — verify any plot at ",
       detected: "detected"
@@ -147,6 +149,7 @@
       thTo: "కొత్త కేటాయింపుదారు", thType: "రకం", thOpen: "",
       openAtlas: "అట్లాస్‌లో చూడు ↗", none: "ఈ ఫిల్టర్లకు మార్పులు లేవు.",
       chartHint: "APCRDA నమోదు చేసిన తేదీల వారీగా బదిలీలు. బూడిద = ఆదివారం (కార్యాలయాలు మూసివేత).",
+      coverage: "<b>తేదీల గురించి.</b> APCRDA తన రిజిస్ట్రేషన్ తేదీ ఫీల్డ్‌ను చివరిగా {last} నాటికి నింపింది. ఆ తర్వాత నమోదైన మార్పులకు తేదీ లేదు — ఇది APCRDA డేటాలో లోటు, కార్యాశీలత లేకపోవడం కాదు.",
       noChart: "ఈ ఎంపికలో తేదీ ఉన్న రిజిస్ట్రేషన్లు లేవు.",
       foot: "మూలం: APCRDA LPS ప్లాట్ లేయర్, ప్రతి రాత్రి పోలిక. ట్రాకింగ్ ప్రారంభం {since}. ఇది అనధికారిక వ్యూయర్ — ప్రతి ప్లాట్‌ను నిర్ధారించుకోండి: ",
       detected: "గుర్తించినది"
@@ -219,6 +222,19 @@
       if (hay.indexOf(F.q.toLowerCase()) === -1) return false;
     }
     return true;
+  }
+
+  function renderCoverage(all) {
+    var el = document.getElementById("coverage");
+    var dated = all.filter(function (r) { return r.regIso; });
+    if (!dated.length) { el.style.display = "none"; return; }
+    var isos = dated.map(function (r) { return r.regIso; }).sort();
+    var lastDetected = all.filter(function (r) { return r.type !== "nameonly"; })
+      .map(function (r) { return r.detected; }).sort();
+    el.innerHTML = t("coverage")
+      .replace("{last}", lastDetected.length ? lastDetected[lastDetected.length - 1] : "—")
+      .replace("{from}", isos[0]).replace("{to}", isos[isos.length - 1]);
+    el.style.display = "block";
   }
 
   function renderStats(list) {
@@ -345,6 +361,7 @@
 
   function render() {
     var list = rows.filter(function (r) { return passes(r, false); });
+    renderCoverage(rows);
     renderTypeChips(rows);
     renderVillageChips(rows);
     renderStats(list);
