@@ -230,6 +230,7 @@ const I18N = {
     ownerHolds: "This owner holds <b>{n}</b> plots", viewAll: "View all →",
     eAllottee: "ALLOTTEE", plotsHeld: "Plots held", lVillages: "Villages", shownOnMap: "Shown on map",
     spreadNote: "These {n} plots are spread about {km} km apart, so the map is zoomed out to fit them all.",
+    zoneClickIgnored: "That is a land-use zone, not a plot. Close this card first to view it.",
     allPlots: "ALL PLOTS — TAP TO OPEN", shareList: "Share this list",
     history: "HISTORY — PERMANENT RECORD", noHistory: "No changes recorded since tracking began on",
     orTitle: "OFFICIAL RECORDS", orIntro: "Look up this plot’s legal records on the government portals. Use the identifiers below — the plot code is copied when you tap.", orPlotCode: "Plot code", orVillage: "Village", orMandal: "Mandal", orDistrict: "District", orEC: "Encumbrance (EC)", orMV: "Market value", orPP: "Prohibited (22A)", orMB: "Land record (Mee Bhoomi)", orFoot: "These open the official AP portals. Each lookup needs a captcha and the details above — this atlas cannot fetch them for you.", orOpened: "Opening official portal — plot code copied",
@@ -292,6 +293,7 @@ const I18N = {
     ownerHolds: "ఈ యజమానికి <b>{n}</b> ప్లాట్లు ఉన్నాయి", viewAll: "అన్నీ చూడండి →",
     eAllottee: "కేటాయింపుదారు", plotsHeld: "ప్లాట్ల సంఖ్య", lVillages: "గ్రామాలు", shownOnMap: "మ్యాప్‌లో చూపినవి",
     spreadNote: "ఈ {n} ప్లాట్లు సుమారు {km} కి.మీ. దూరంలో విస్తరించి ఉన్నాయి, అందుకే మ్యాప్ జూమ్ అవుట్ అయింది.",
+    zoneClickIgnored: "అది భూ-వినియోగ జోన్, ప్లాట్ కాదు. చూడటానికి ముందు ఈ కార్డును మూసివేయండి.",
     allPlots: "అన్ని ప్లాట్లు — తెరవడానికి నొక్కండి", shareList: "ఈ జాబితాను షేర్ చేయండి",
     history: "చరిత్ర — శాశ్వత రికార్డు", noHistory: "ట్రాకింగ్ ప్రారంభమైనప్పటి నుండి మార్పులు నమోదు కాలేదు —",
     orTitle: "అధికారిక రికార్డులు", orIntro: "ఈ ప్లాట్ చట్టపరమైన రికార్డులను ప్రభుత్వ పోర్టళ్లలో చూడండి. కింది వివరాలు వాడండి — నొక్కినప్పుడు ప్లాట్ కోడ్ కాపీ అవుతుంది.", orPlotCode: "ప్లాట్ కోడ్", orVillage: "గ్రామం", orMandal: "మండలం", orDistrict: "జిల్లా", orEC: "ఎన్‌కంబ్రెన్స్ (EC)", orMV: "మార్కెట్ విలువ", orPP: "నిషేధిత (22A)", orMB: "భూ రికార్డు (మీ భూమి)", orFoot: "ఇవి అధికారిక AP పోర్టళ్లను తెరుస్తాయి. ప్రతి శోధనకు క్యాప్చా, పై వివరాలు అవసరం — ఈ అట్లాస్ వాటిని తీసుకురాలేదు.", orOpened: "అధికారిక పోర్టల్ తెరుస్తోంది — ప్లాట్ కోడ్ కాపీ అయింది",
@@ -1635,16 +1637,30 @@ function isRealPlotProps(pr) {
 
 map.on("click", (e) => {
   if (!state.live) return;
+  if (measure.on) return; // while measuring, clicks are measurement points
+  // Remember what the user was deliberately looking at when they clicked. An
+  // owner's holdings, or a plot they opened, is a considered state; an async
+  // identify that lands afterwards must not quietly overwrite it.
+  const ctxMode = state.mode, ctxOwner = state.owner, ctxSel = state.selectedCode;
+  const deliberate = ctxMode === "owner" || (ctxMode === "plot" && ctxSel != null);
   L.esri.identifyFeatures(esriOpts({ url: CONFIG.SERVICE }))
     .on(map).at(e.latlng)
     .layers("all:" + CONFIG.PLOT_LAYER)
     .tolerance(3)
     .run((err, fc) => {
       if (err || !fc || !fc.features.length) return;
-      // prefer a returnable plot under the cursor; otherwise show the
-      // land-use area / road / unallocated parcel that is there
-      const f = fc.features.find((x) => isRealPlotProps(x.properties)) || fc.features[0];
-      showFeature(f);
+      // the user moved on while the server was answering
+      if (state.mode !== ctxMode || state.owner !== ctxOwner || state.selectedCode !== ctxSel) return;
+      const real = fc.features.find((x) => isRealPlotProps(x.properties));
+      if (real) { showFeature(real); return; }
+      // Only a land-use zone here — village planning areas, reserves and roads
+      // blanket the whole map, so almost any stray click hits one. Opening it
+      // used to wipe the owner list (and its pins) while leaving ?owner= in the
+      // address bar, so the page contradicted its own URL. Never hijack a
+      // deliberate view; say why instead.
+      if (deliberate) { toast(t("zoneClickIgnored")); return; }
+      updateURL(null); // area cards aren't shareable state — keep the URL honest
+      showFeature(fc.features[0]);
     });
 });
 
