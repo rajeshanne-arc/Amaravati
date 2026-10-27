@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-25T23:23:50.238Z",
+  "generated": "2026-10-27T00:38:46.600Z",
   "count": 24,
   "conflicts": [
     {
@@ -36,7 +36,7 @@
         "farmer": "Assembly",
         "ext": 3064.1766056
       },
-      "oid": 13306
+      "oid": 13307
     },
     {
       "key": "8-414-2835-0-A128#",
@@ -48,7 +48,7 @@
         "farmer": "Isha Foundation adjacent Park",
         "ext": 18148.0371864
       },
-      "oid": 22539
+      "oid": 22541
     },
     {
       "key": "6-349-8888-165-SS1#",
@@ -60,7 +60,7 @@
         "farmer": "Assembly",
         "ext": 32719.5568568
       },
-      "oid": 27539
+      "oid": 27541
     },
     {
       "key": "6-349-8888-165-SS1#",
@@ -72,7 +72,7 @@
         "farmer": "Assembly",
         "ext": 50060.5671192
       },
-      "oid": 28150
+      "oid": 28152
     },
     {
       "key": "6-344-2144-29-RV#Lingayapalem",
@@ -84,7 +84,7 @@
         "farmer": "APCRDA",
         "ext": 1682.8766152
       },
-      "oid": 37657
+      "oid": 37661
     },
     {
       "key": "6-349-8888-165-SS1#",
@@ -96,7 +96,7 @@
         "farmer": "Assembly",
         "ext": 82388.752622
       },
-      "oid": 47506
+      "oid": 47517
     },
     {
       "key": "6-349-8888-165-SS1#",
@@ -108,7 +108,7 @@
         "farmer": "Assembly",
         "ext": 32719.5625196
       },
-      "oid": 49160
+      "oid": 49171
     },
     {
       "key": "6-344-2145-19-RV#Lingayapalem",
@@ -120,7 +120,7 @@
         "farmer": "APCRDA",
         "ext": 2077.5579968
       },
-      "oid": 51247
+      "oid": 51258
     },
     {
       "key": "3-544-1919-0-A126#",
@@ -132,7 +132,7 @@
         "farmer": "National Fisheries Development Board Acquarium",
         "ext": 8088.956238
       },
-      "oid": 54962
+      "oid": 54973
     },
     {
       "key": "1-257-1601-16-C14#Abbarajupalem",
@@ -144,7 +144,7 @@
         "farmer": "",
         "ext": 870.00031924
       },
-      "oid": 62470
+      "oid": 62482
     },
     {
       "key": "7-405-1727-15-CV#Lingayapalem",
@@ -156,7 +156,7 @@
         "farmer": "APCRDA",
         "ext": 224.881888
       },
-      "oid": 63379
+      "oid": 63390
     },
     {
       "key": "6-344-2148-4-RV#Lingayapalem",
@@ -168,7 +168,7 @@
         "farmer": "APCRDA",
         "ext": 2343.1150512
       },
-      "oid": 66011
+      "oid": 66022
     },
     {
       "key": "28-821-4790-31-RV#Nowlur",
@@ -180,7 +180,7 @@
         "farmer": "APCRDA",
         "ext": 179.9951956
       },
-      "oid": 67170
+      "oid": 67181
     },
     {
       "key": "6-344-2148-4-RV#Lingayapalem",
@@ -192,7 +192,7 @@
         "farmer": "APCRDA",
         "ext": 3637.6489424
       },
-      "oid": 69779
+      "oid": 69790
     },
     {
       "key": "6-349-8888-165-SS1#",
@@ -204,7 +204,7 @@
         "farmer": "Assembly",
         "ext": 52737.905176
       },
-      "oid": 75429
+      "oid": 75444
     },
     {
       "key": "6-349-8888-165-SS1#",
@@ -216,7 +216,7 @@
         "farmer": "Assembly",
         "ext": 32813.4233328
       },
-      "oid": 82906
+      "oid": 82922
     },
     {
       "key": "7-405-1727-5-K10#Lingayapalem",
@@ -228,7 +228,7 @@
         "farmer": "VEMPARALA ANJAMMA",
         "ext": 720
       },
-      "oid": 84490
+      "oid": 84505
     },
     {
       "key": "3-544-1919-0-A126#",
@@ -240,7 +240,7 @@
         "farmer": "National Fisheries Development Board(NFDB)​",
         "ext": 9795.1584588
       },
-      "oid": 84980
+      "oid": 84995
     },
     {
       "key": "6-344-2144-29-RV#Lingayapalem",
@@ -252,7 +252,7 @@
         "farmer": "APCRDA",
         "ext": 39.0357132
       },
-      "oid": 86252
+      "oid": 86267
     },
     {
       "key": "6-349-8888-165-SS1#",
@@ -264,7 +264,7 @@
         "farmer": "Assembly",
         "ext": 6797.6970424
       },
-      "oid": 88125
+      "oid": 88141
     },
     {
       "key": "22-716-4493-90-U2#Nowlur",
@@ -276,7 +276,7 @@
         "farmer": "APCRDA",
         "ext": 98.1811908
       },
-      "oid": 91623
+      "oid": 91639
     },
     {
       "key": "1-257-1601-15-C14#Abbarajupalem",
@@ -288,7 +288,7 @@
         "farmer": "",
         "ext": 870.00031917
       },
-      "oid": 94428
+      "oid": 94444
     }
   ]
 }
