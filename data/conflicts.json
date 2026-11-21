@@ -1,271 +1,7 @@
 {
-  "generated": "2026-11-20T02:27:19.654Z",
+  "generated": "2026-11-21T02:36:47.224Z",
   "count": 25,
   "conflicts": [
-    {
-      "key": "6-349-8888-165-SS1#",
-      "kept": {
-        "farmer": "Assembly",
-        "ext": 6903.5876272
-      },
-      "dropped": {
-        "farmer": "Assembly",
-        "ext": 180094.9306244
-      },
-      "oid": 42296
-    },
-    {
-      "key": "3-544-1919-0-A126#",
-      "kept": {
-        "farmer": "National Fisheries Development Board(NFDB)​ Park",
-        "ext": 20311.6357664
-      },
-      "dropped": {
-        "farmer": "National Fisheries Development Board Acquarium",
-        "ext": 8088.956238
-      },
-      "oid": 42310
-    },
-    {
-      "key": "22-716-4493-90-U2#Nowlur",
-      "kept": {
-        "farmer": "APCRDA",
-        "ext": 98.1811908
-      },
-      "dropped": {
-        "farmer": "APCRDA",
-        "ext": 288.0020704
-      },
-      "oid": 45858
-    },
-    {
-      "key": "28-821-4790-31-RV#Nowlur",
-      "kept": {
-        "farmer": "APCRDA",
-        "ext": 12404.7512776
-      },
-      "dropped": {
-        "farmer": "APCRDA",
-        "ext": 179.9951956
-      },
-      "oid": 45871
-    },
-    {
-      "key": "8-414-2835-0-A128#",
-      "kept": {
-        "farmer": "Isha Foundation",
-        "ext": 18919.8060172
-      },
-      "dropped": {
-        "farmer": "Isha Foundation adjacent Park",
-        "ext": 18148.0371864
-      },
-      "oid": 46280
-    },
-    {
-      "key": "3-544-1919-0-A126#",
-      "kept": {
-        "farmer": "National Fisheries Development Board(NFDB)​ Park",
-        "ext": 20311.6357664
-      },
-      "dropped": {
-        "farmer": "National Fisheries Development Board(NFDB)​",
-        "ext": 9795.1584588
-      },
-      "oid": 46281
-    },
-    {
-      "key": "6-344-2144-29-RV#Lingayapalem",
-      "kept": {
-        "farmer": "APCRDA",
-        "ext": 4477.5018112
-      },
-      "dropped": {
-        "farmer": "APCRDA",
-        "ext": 39.0357132
-      },
-      "oid": 46290
-    },
-    {
-      "key": "6-344-2144-29-RV#Lingayapalem",
-      "kept": {
-        "farmer": "APCRDA",
-        "ext": 4477.5018112
-      },
-      "dropped": {
-        "farmer": "APCRDA",
-        "ext": 1682.8766152
-      },
-      "oid": 46292
-    },
-    {
-      "key": "6-344-2145-19-RV#Lingayapalem",
-      "kept": {
-        "farmer": "APCRDA",
-        "ext": 2077.5526728
-      },
-      "dropped": {
-        "farmer": "APCRDA",
-        "ext": 2077.5579968
-      },
-      "oid": 46293
-    },
-    {
-      "key": "6-349-8888-165-SS1#",
-      "kept": {
-        "farmer": "Assembly",
-        "ext": 6903.5876272
-      },
-      "dropped": {
-        "farmer": "Assembly",
-        "ext": 50060.5671192
-      },
-      "oid": 47299
-    },
-    {
-      "key": "6-349-8888-165-SS1#",
-      "kept": {
-        "farmer": "Assembly",
-        "ext": 6903.5876272
-      },
-      "dropped": {
-        "farmer": "Assembly",
-        "ext": 32719.5625196
-      },
-      "oid": 47300
-    },
-    {
-      "key": "14-567-1191-0-A129#",
-      "kept": {
-        "farmer": "Art of Living",
-        "ext": 17943.5891976
-      },
-      "dropped": {
-        "farmer": "Art of Living Park",
-        "ext": 17947.3476028
-      },
-      "oid": 56442
-    },
-    {
-      "key": "6-349-8888-165-SS1#",
-      "kept": {
-        "farmer": "Assembly",
-        "ext": 6903.5876272
-      },
-      "dropped": {
-        "farmer": "Assembly",
-        "ext": 32813.4233328
-      },
-      "oid": 56559
-    },
-    {
-      "key": "6-349-8888-165-SS1#",
-      "kept": {
-        "farmer": "Assembly",
-        "ext": 6903.5876272
-      },
-      "dropped": {
-        "farmer": "Assembly",
-        "ext": 82388.752622
-      },
-      "oid": 56560
-    },
-    {
-      "key": "6-349-8888-165-SS1#",
-      "kept": {
-        "farmer": "Assembly",
-        "ext": 6903.5876272
-      },
-      "dropped": {
-        "farmer": "Assembly",
-        "ext": 6797.6970424
-      },
-      "oid": 56561
-    },
-    {
-      "key": "6-349-8888-165-SS1#",
-      "kept": {
-        "farmer": "Assembly",
-        "ext": 6903.5876272
-      },
-      "dropped": {
-        "farmer": "Assembly",
-        "ext": 52737.905176
-      },
-      "oid": 56562
-    },
-    {
-      "key": "6-349-8888-165-SS1#",
-      "kept": {
-        "farmer": "Assembly",
-        "ext": 6903.5876272
-      },
-      "dropped": {
-        "farmer": "Assembly",
-        "ext": 32719.5568568
-      },
-      "oid": 56563
-    },
-    {
-      "key": "7-405-1727-15-CV#Lingayapalem",
-      "kept": {
-        "farmer": "APCRDA",
-        "ext": 224.8226948
-      },
-      "dropped": {
-        "farmer": "APCRDA",
-        "ext": 224.881888
-      },
-      "oid": 56928
-    },
-    {
-      "key": "6-344-2148-4-RV#Lingayapalem",
-      "kept": {
-        "farmer": "APCRDA",
-        "ext": 1294.5403768
-      },
-      "dropped": {
-        "farmer": "APCRDA",
-        "ext": 2343.1150512
-      },
-      "oid": 65590
-    },
-    {
-      "key": "6-344-2148-4-RV#Lingayapalem",
-      "kept": {
-        "farmer": "APCRDA",
-        "ext": 1294.5403768
-      },
-      "dropped": {
-        "farmer": "APCRDA",
-        "ext": 3637.6489424
-      },
-      "oid": 65591
-    },
-    {
-      "key": "7-392-2061-42-RAA#Uddandarayunipalem",
-      "kept": {
-        "farmer": "APCRDA",
-        "ext": 1718.50708522
-      },
-      "dropped": {
-        "farmer": "APCRDA",
-        "ext": 1770.10069859
-      },
-      "oid": 65601
-    },
-    {
-      "key": "6-349-8888-165-SS1#",
-      "kept": {
-        "farmer": "Assembly",
-        "ext": 6903.5876272
-      },
-      "dropped": {
-        "farmer": "Assembly",
-        "ext": 3064.1766056
-      },
-      "oid": 70640
-    },
     {
       "key": "1-257-1601-15-C14#Abbarajupalem",
       "kept": {
@@ -276,7 +12,7 @@
         "farmer": "",
         "ext": 870.00031917
       },
-      "oid": 74194
+      "oid": 47481
     },
     {
       "key": "1-257-1601-16-C14#Abbarajupalem",
@@ -288,7 +24,19 @@
         "farmer": "",
         "ext": 870.00031924
       },
-      "oid": 74198
+      "oid": 47486
+    },
+    {
+      "key": "6-349-8888-165-SS1#",
+      "kept": {
+        "farmer": "Assembly",
+        "ext": 3064.1766056
+      },
+      "dropped": {
+        "farmer": "Assembly",
+        "ext": 6903.5876272
+      },
+      "oid": 76560
     },
     {
       "key": "7-405-1727-5-K10#Lingayapalem",
@@ -300,7 +48,259 @@
         "farmer": "VEMPARALA ANJAMMA",
         "ext": 720
       },
-      "oid": 74601
+      "oid": 79509
+    },
+    {
+      "key": "6-349-8888-165-SS1#",
+      "kept": {
+        "farmer": "Assembly",
+        "ext": 3064.1766056
+      },
+      "dropped": {
+        "farmer": "Assembly",
+        "ext": 180094.9306244
+      },
+      "oid": 80720
+    },
+    {
+      "key": "3-544-1919-0-A126#",
+      "kept": {
+        "farmer": "National Fisheries Development Board(NFDB)​ Park",
+        "ext": 20311.6357664
+      },
+      "dropped": {
+        "farmer": "National Fisheries Development Board Acquarium",
+        "ext": 8088.956238
+      },
+      "oid": 80739
+    },
+    {
+      "key": "22-716-4493-90-U2#Nowlur",
+      "kept": {
+        "farmer": "APCRDA",
+        "ext": 98.1811908
+      },
+      "dropped": {
+        "farmer": "APCRDA",
+        "ext": 288.0020704
+      },
+      "oid": 22792
+    },
+    {
+      "key": "28-821-4790-31-RV#Nowlur",
+      "kept": {
+        "farmer": "APCRDA",
+        "ext": 12404.7512776
+      },
+      "dropped": {
+        "farmer": "APCRDA",
+        "ext": 179.9951956
+      },
+      "oid": 22803
+    },
+    {
+      "key": "8-414-2835-0-A128#",
+      "kept": {
+        "farmer": "Isha Foundation",
+        "ext": 18919.8060172
+      },
+      "dropped": {
+        "farmer": "Isha Foundation adjacent Park",
+        "ext": 18148.0371864
+      },
+      "oid": 83266
+    },
+    {
+      "key": "3-544-1919-0-A126#",
+      "kept": {
+        "farmer": "National Fisheries Development Board(NFDB)​ Park",
+        "ext": 20311.6357664
+      },
+      "dropped": {
+        "farmer": "National Fisheries Development Board(NFDB)​",
+        "ext": 9795.1584588
+      },
+      "oid": 83267
+    },
+    {
+      "key": "6-344-2144-29-RV#Lingayapalem",
+      "kept": {
+        "farmer": "APCRDA",
+        "ext": 4477.5018112
+      },
+      "dropped": {
+        "farmer": "APCRDA",
+        "ext": 39.0357132
+      },
+      "oid": 83276
+    },
+    {
+      "key": "6-344-2144-29-RV#Lingayapalem",
+      "kept": {
+        "farmer": "APCRDA",
+        "ext": 4477.5018112
+      },
+      "dropped": {
+        "farmer": "APCRDA",
+        "ext": 1682.8766152
+      },
+      "oid": 83277
+    },
+    {
+      "key": "6-344-2145-19-RV#Lingayapalem",
+      "kept": {
+        "farmer": "APCRDA",
+        "ext": 2077.5526728
+      },
+      "dropped": {
+        "farmer": "APCRDA",
+        "ext": 2077.5579968
+      },
+      "oid": 83278
+    },
+    {
+      "key": "6-349-8888-165-SS1#",
+      "kept": {
+        "farmer": "Assembly",
+        "ext": 3064.1766056
+      },
+      "dropped": {
+        "farmer": "Assembly",
+        "ext": 50060.5671192
+      },
+      "oid": 83908
+    },
+    {
+      "key": "6-349-8888-165-SS1#",
+      "kept": {
+        "farmer": "Assembly",
+        "ext": 3064.1766056
+      },
+      "dropped": {
+        "farmer": "Assembly",
+        "ext": 32719.5625196
+      },
+      "oid": 83909
+    },
+    {
+      "key": "14-567-1191-0-A129#",
+      "kept": {
+        "farmer": "Art of Living",
+        "ext": 17943.5891976
+      },
+      "dropped": {
+        "farmer": "Art of Living Park",
+        "ext": 17947.3476028
+      },
+      "oid": 89895
+    },
+    {
+      "key": "6-349-8888-165-SS1#",
+      "kept": {
+        "farmer": "Assembly",
+        "ext": 3064.1766056
+      },
+      "dropped": {
+        "farmer": "Assembly",
+        "ext": 32813.4233328
+      },
+      "oid": 89960
+    },
+    {
+      "key": "6-349-8888-165-SS1#",
+      "kept": {
+        "farmer": "Assembly",
+        "ext": 3064.1766056
+      },
+      "dropped": {
+        "farmer": "Assembly",
+        "ext": 82388.752622
+      },
+      "oid": 89961
+    },
+    {
+      "key": "6-349-8888-165-SS1#",
+      "kept": {
+        "farmer": "Assembly",
+        "ext": 3064.1766056
+      },
+      "dropped": {
+        "farmer": "Assembly",
+        "ext": 6797.6970424
+      },
+      "oid": 89962
+    },
+    {
+      "key": "6-349-8888-165-SS1#",
+      "kept": {
+        "farmer": "Assembly",
+        "ext": 3064.1766056
+      },
+      "dropped": {
+        "farmer": "Assembly",
+        "ext": 52737.905176
+      },
+      "oid": 89963
+    },
+    {
+      "key": "6-349-8888-165-SS1#",
+      "kept": {
+        "farmer": "Assembly",
+        "ext": 3064.1766056
+      },
+      "dropped": {
+        "farmer": "Assembly",
+        "ext": 32719.5568568
+      },
+      "oid": 89964
+    },
+    {
+      "key": "7-405-1727-15-CV#Lingayapalem",
+      "kept": {
+        "farmer": "APCRDA",
+        "ext": 224.8226948
+      },
+      "dropped": {
+        "farmer": "APCRDA",
+        "ext": 224.881888
+      },
+      "oid": 90199
+    },
+    {
+      "key": "6-344-2148-4-RV#Lingayapalem",
+      "kept": {
+        "farmer": "APCRDA",
+        "ext": 1294.5403768
+      },
+      "dropped": {
+        "farmer": "APCRDA",
+        "ext": 2343.1150512
+      },
+      "oid": 27477
+    },
+    {
+      "key": "6-344-2148-4-RV#Lingayapalem",
+      "kept": {
+        "farmer": "APCRDA",
+        "ext": 1294.5403768
+      },
+      "dropped": {
+        "farmer": "APCRDA",
+        "ext": 3637.6489424
+      },
+      "oid": 27478
+    },
+    {
+      "key": "7-392-2061-42-RAA#Uddandarayunipalem",
+      "kept": {
+        "farmer": "APCRDA",
+        "ext": 1718.50708522
+      },
+      "dropped": {
+        "farmer": "APCRDA",
+        "ext": 1770.10069859
+      },
+      "oid": 27488
     }
   ]
 }
